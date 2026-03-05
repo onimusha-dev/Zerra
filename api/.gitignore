@@ -1,7 +1,9 @@
+# make sure not to public the api keys
+
 node_modules/
-.env
 dist/
-
 /src/generated/prisma
 
-/src/generated/prisma
+.env
+*.env*
+.env.local
