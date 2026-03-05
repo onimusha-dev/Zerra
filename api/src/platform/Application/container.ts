@@ -42,7 +42,7 @@ class Container {
     tryResolve<T>(key: String): T | undefined {
         try {
             return this.resolve(key);
-        } catch (error) {
+        } catch {
             return undefined;
         }
     }
