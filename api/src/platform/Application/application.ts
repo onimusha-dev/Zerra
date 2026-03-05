@@ -1,9 +1,10 @@
+import { createHealthRoutes, HealthController } from '@modules/health';
 import { ConfigService } from '@platform/config/config.service';
+import { DatabaseService } from '@platform/database';
 import { HttpServer } from '@platform/http/http.server';
 import { LoggerService } from '@platform/logger/logger.service';
-import { createHealthRoutes, HealthController } from '@modules/health';
 import { Hono } from 'hono';
-import { DatabaseService } from '@platform/database';
+
 import { container, ServiceKeys } from './container';
 
 export class Application {

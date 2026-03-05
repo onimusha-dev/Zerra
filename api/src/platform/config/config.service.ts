@@ -1,5 +1,5 @@
-import z from 'zod';
 import { configDotenv } from 'dotenv';
+import z from 'zod';
 configDotenv();
 
 const configSchema = z.object({

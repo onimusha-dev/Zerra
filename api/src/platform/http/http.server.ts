@@ -1,8 +1,9 @@
-import { Context, ErrorHandler, Hono, MiddlewareHandler } from 'hono';
-import { LoggerService } from '@platform/logger/logger.service';
-import { ConfigService } from '@platform/config/config.service';
 import { serve, ServerType } from '@hono/node-server';
-import { corsMiddleware, csrfMiddleware, bodyLimit } from './middleware';
+import { ConfigService } from '@platform/config/config.service';
+import { LoggerService } from '@platform/logger/logger.service';
+import { ErrorHandler, Hono, MiddlewareHandler } from 'hono';
+
+import { bodyLimit, corsMiddleware, csrfMiddleware } from './middleware';
 
 export class HttpServer {
     private static instance: HttpServer | null = null;

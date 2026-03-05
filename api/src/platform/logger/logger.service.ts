@@ -1,5 +1,5 @@
-import { Logger, pino } from 'pino';
 import { ConfigService } from '@platform/config/config.service';
+import { Logger, pino } from 'pino';
 
 export class LoggerService {
     private static instance: LoggerService | null = null;

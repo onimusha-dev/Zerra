@@ -1,7 +1,8 @@
 import 'dotenv/config';
+
+import { LoggerService } from '@platform/logger/logger.service';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client/extension';
-import { LoggerService } from '@platform/logger/logger.service';
 
 export class DatabaseService {
     private static instance: DatabaseService | null = null;
@@ -39,7 +40,7 @@ export class DatabaseService {
     async connect(): Promise<void> {
         if (this.connected) return;
         try {
-            this.prismaClint.connect();
+            this.prismaClint.$connect();
             this.isConnected = true;
             this.logger.info('Database connected successfully.');
         } catch (error) {
@@ -51,7 +52,7 @@ export class DatabaseService {
     async disconnect(): Promise<void> {
         if (!this.connected) return;
         try {
-            this.prismaClint.disconnect();
+            this.prismaClint.$disconnect();
             this.isConnected = false;
         } catch (error) {
             this.logger.error('Error disconnecting from database', error);
@@ -59,11 +60,36 @@ export class DatabaseService {
         }
     }
 
-    get connected(): boolean {
+    get connected() {
         return this.isConnected;
     }
 
-    async healthCheck() {}
+    async healthCheck(): Promise<{ status: 'up' | 'down'; delayMs?: Number; error?: String }> {
+        const start = Date.now();
+        try {
+            await this.prismaClint.$runCommandRaw({ ping: 1 });
+            return {
+                status: 'up',
+                delayMs: Date.now() - start,
+            };
+        } catch (error) {
+            const err = error as String;
+            return {
+                status: 'down',
+                error: err,
+            };
+        }
+    }
 
-    async transaction() {}
+    /**
+     * Executes a transaction with the given function.
+     * @param fn The function to execute within the transaction.
+     * @returns The result of the function.
+     */
+    async transaction<T>(fn: (tx: PrismaClient) => Promise<T>): Promise<T> {
+        const result = this.prismaClint.$transaction(
+            fn as Parameters<typeof this.prismaClint.$transaction>[0],
+        );
+        return result;
+    }
 }
