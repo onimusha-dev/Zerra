@@ -1,0 +1,6 @@
+src/platfrom/database/client/**/*
+
+node_modules
+dist
+build
+

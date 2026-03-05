@@ -1,0 +1,45 @@
+{
+    "private": true,
+    "scripts": {
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "lint:api": "eslint api --ext .ts,.js",
+        "lint:web": "eslint web --ext .ts,.js",
+        "lint:app": "eslint app --ext .ts,.js",
+        "format": "prettier . --write",
+        "format:api": "prettier api --write",
+        "format:web": "prettier web --write",
+        "format:app": "prettier app --write",
+        "prepare": "husky"
+    },
+    "lint-staged": {
+        "api/**/*.{ts,js}": [
+            "eslint --fix",
+            "prettier --write"
+        ],
+        "web/**/*.{ts,js,tsx,jsx}": [
+            "eslint --fix",
+            "prettier --write"
+        ],
+        "app/**/*.{ts,js,tsx}": [
+            "eslint --fix",
+            "prettier --write"
+        ],
+        "*.{json,md,yml,yaml,css,scss}": [
+            "prettier --write"
+        ]
+    },
+    "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^8.56.1",
+        "@typescript-eslint/parser": "^8.56.1",
+        "eslint": "^9.39.3",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-import": "^2.32.0",
+        "eslint-plugin-simple-import-sort": "^12.1.1",
+        "eslint-plugin-unused-imports": "^4.4.1",
+        "globals": "^17.4.0",
+        "husky": "^9.1.7",
+        "lint-staged": "^16.3.2",
+        "prettier": "^3.8.1"
+    }
+}
