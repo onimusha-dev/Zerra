@@ -1,0 +1,30 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "rootDir": "./src",
+        "outDir": "./dist",
+
+        "strict": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "skipLibCheck": true,
+
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+
+        "types": ["node"],
+
+        "baseUrl": "./src",
+        "paths": {
+            "@platform/*": ["platform/*"],
+            "@modules/*": ["modules/*"],
+            "@shared/*": ["shared/*"],
+            "@/*": ["*"]
+        }
+    },
+    "include": ["src/**/*", "src/generated"],
+    "exclude": ["node_modules", "dist"]
+}
