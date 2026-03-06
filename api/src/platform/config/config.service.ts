@@ -8,6 +8,7 @@ const configSchema = z.object({
     PORT: z.string().default('5500').transform(Number),
     DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
     CORS_ORIGIN: z.string(),
+    PNPM_PACKAGE_VERSION: z.string().default('1.0.0'),
 });
 
 type ConfigSchema = z.infer<typeof configSchema>;
@@ -69,7 +70,12 @@ export class ConfigService {
     get databaseUrl(): string {
         return this.config.DATABASE_URL;
     }
+
     get logLevel(): String {
         return this.config.LOG_LEVEL;
+    }
+
+    get npm_package_version(): String {
+        return this.config.PNPM_PACKAGE_VERSION;
     }
 }
