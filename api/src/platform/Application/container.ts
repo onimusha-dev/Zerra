@@ -69,6 +69,7 @@ export const ServiceKeys = {
     LOGGER: 'logger',
     HTTP_SERVER: 'httpServer',
     DATABASE: 'database',
+    CACHE: 'cache',
 } as const;
 
 export const container = Container.getInstance();

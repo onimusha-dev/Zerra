@@ -18,6 +18,12 @@ export class AuthRepository {
         return this.db.prisma.user;
     }
 
+    async findUserById(id: number) {
+        return this.user.findUnique({
+            where: { id },
+        });
+    }
+
     async findUserByEmail(email: string) {
         return this.user.findUnique({
             where: { email },

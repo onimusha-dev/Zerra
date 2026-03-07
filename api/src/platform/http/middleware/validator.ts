@@ -1,61 +1,55 @@
 import { Context, Next } from 'hono';
-import * as z from 'zod';
+import { ZodSchema, ZodError } from 'zod';
+import { ValidationError } from '@shared/json/apiError';
 
 /**
- * Create validation middleware from a Zod schema
+ * Validate request body, query, or params using a Zod schema
+ *
+ * @param target - 'json', 'query', or 'param'
+ * @param schema - Zod schema to validate against
  */
-export function validate(schema: ZodSchema) {
-    return async (ctx: Context, next: Next): Promise<void> => {
-        const result = schema.safeParse(ctx.request.body);
-
-        if (!result.success) {
-            const fields: Record<string, string[]> = {};
-            for (const issue of result.error.issues) {
-                const path = issue.path.join('.');
-                if (!fields[path]) fields[path] = [];
-                fields[path].push(issue.message);
+export const validate = (target: 'json' | 'query' | 'param', schema: ZodSchema) => {
+    return async (c: Context, next: Next) => {
+        let data: any;
+        try {
+            if (target === 'json') {
+                // Handle empty or invalid JSON bodies gracefully
+                data = await c.req.json().catch(() => ({}));
+            } else if (target === 'query') {
+                data = c.req.query();
+            } else if (target === 'param') {
+                data = c.req.param();
             }
-            throw new ValidationError('Validation failed', fields);
-        }
 
-        ctx.request.body = result.data;
-        await next();
-    };
-}
+            const result = await schema.safeParseAsync(data);
 
-export function validateQuery(schema: ZodSchema) {
-    return async (ctx: Context, next: Next): Promise<void> => {
-        const result = schema.safeParse(ctx.query);
-
-        if (!result.success) {
-            const fields: Record<string, string[]> = {};
-            for (const issue of result.error.issues) {
-                const path = issue.path.join('.');
-                if (!fields[path]) fields[path] = [];
-                fields[path].push(issue.message);
+            if (!result.success) {
+                const fields: Record<string, string[]> = {};
+                for (const issue of result.error.issues) {
+                    const path = issue.path.join('.');
+                    if (!fields[path]) fields[path] = [];
+                    fields[path].push(issue.message);
+                }
+                throw new ValidationError(`Invalid request ${target}`, fields);
             }
-            throw new ValidationError('Invalid query parameters', fields);
-        }
 
-        await next();
-    };
-}
+            // Overwrite or store the validated data
+            // Note: Hono's req.json() can't be easily overwritten for downstream
+            // but we can pass it through context if needed.
+            // For now, we just validate.
 
-export function validateParams(schema: ZodSchema) {
-    return async (ctx: Context, next: Next): Promise<void> => {
-        const result = schema.safeParse(ctx.params);
-
-        if (!result.success) {
-            const fields: Record<string, string[]> = {};
-            for (const issue of result.error.issues) {
-                const path = issue.path.join('.');
-                if (!fields[path]) fields[path] = [];
-                fields[path].push(issue.message);
+            await next();
+        } catch (error) {
+            if (error instanceof ZodError) {
+                const fields: Record<string, string[]> = {};
+                for (const issue of error.issues) {
+                    const path = issue.path.join('.');
+                    if (!fields[path]) fields[path] = [];
+                    fields[path].push(issue.message);
+                }
+                throw new ValidationError(`Invalid request ${target}`, fields);
             }
-            throw new ValidationError('Invalid path parameters', fields);
+            throw error;
         }
-
-        ctx.params = result.data;
-        await next();
     };
-}
+};
