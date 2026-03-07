@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+
 import { HealthController } from './health.controller';
 
 /**
@@ -7,16 +8,16 @@ import { HealthController } from './health.controller';
  * @returns Hono
  *
  *  @GET /health         -> liveness
- *  @GET /health/ready   -> readiness
- *  @GET /health/details -> dependency checks
+ *  @GET /health/live   -> readiness
+ *  @GET /health/ready -> dependency checks
  *
  */
 export function createHealthRoutes(controller: HealthController): Hono {
     const router = new Hono();
 
-    router.get('/', controller.getHome);
-    router.get('/ready', controller.healthCheck);
-    router.get('/details', controller.healthCheck);
+    router.get('/', controller.health);
+    router.get('/live', controller.liveness);
+    router.get('/ready', controller.readiness);
 
     return router;
 }

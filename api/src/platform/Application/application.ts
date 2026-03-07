@@ -36,7 +36,7 @@ export class Application {
             // they depends on each other -> order matters
             await this.initializeConfig();
             await this.initializeLogger();
-            await this.initializeDatabase;
+            await this.initializeDatabase();
 
             // 4: Setup the HTTP Server
             await this.initializeHttpServer();
@@ -87,7 +87,7 @@ export class Application {
 
     private registerModules() {
         const mainRouter = new Hono();
-        const healthController = new HealthController();
+        const healthController = new HealthController(this.database);
 
         mainRouter.route('/health', createHealthRoutes(healthController));
 

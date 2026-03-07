@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -14,55 +8,51 @@ datasource db {
 }
 
 model User {
-  id           Int     @id @default(autoincrement())
-  name         String
-  email        String  @unique
-  username     String  @unique
-  passwordHash String? @unique @map("password_hash")
-  avater       String?
-  bio          String? @db.VarChar(150)
-  link         String?
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  settings Json   @default("{}")
-  timezone String @default("UTC")
-
-  posts    Post[]
-  articles Articles[]
+  id               Int        @id @default(autoincrement())
+  name             String
+  email            String     @unique
+  username         String     @unique
+  bio              String?    @db.VarChar(150)
+  link             String?
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+  settings         Json       @default("{}")
+  timezone         String     @default("UTC")
+  avatar           String?
+  password         String?    @map("password_hash")
+  twoFactorEnabled Boolean    @default(false) @map("two_factor_enabled")
+  refreshToken     String?    @map("refresh_token")
+  isVerified       Boolean    @default(false) @map("is_verified")
+  articles         Articles[]
+  posts            Post[]
 }
 
 model Post {
-  id        Int     @id @default(autoincrement())
-  content   String  @db.VarChar(500)
-  published Boolean @default(false)
-  author    User    @relation(fields: [authorId], references: [id])
+  id        Int        @id @default(autoincrement())
+  content   String     @db.VarChar(500)
+  published Boolean    @default(false)
   authorId  Int
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  comments Comments[]
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  comments  Comments[]
+  author    User       @relation(fields: [authorId], references: [id])
 }
 
 model Articles {
-  id             Int     @id @default(autoincrement())
-  title          String  @db.VarChar(100)
+  id             Int        @id @default(autoincrement())
+  title          String     @db.VarChar(100)
   body           String
-  published      Boolean @default(true)
-  enableComments Boolean @default(true) @map("enable_comments")
-
-  user   User? @relation(fields: [userId], references: [id])
-  userId Int?
-
-  comments Comments[]
+  published      Boolean    @default(true)
+  enableComments Boolean    @default(true) @map("enable_comments")
+  userId         Int?
+  user           User?      @relation(fields: [userId], references: [id])
+  comments       Comments[]
 }
 
 model Comments {
   id         Int       @id @default(autoincrement())
-  post       Post?     @relation(fields: [postId], references: [id])
   postId     Int?
-  articles   Articles? @relation(fields: [articlesId], references: [id])
   articlesId Int?
+  articles   Articles? @relation(fields: [articlesId], references: [id])
+  post       Post?     @relation(fields: [postId], references: [id])
 }
