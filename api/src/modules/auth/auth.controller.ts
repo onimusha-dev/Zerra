@@ -12,6 +12,7 @@ import {
     ResetPasswordSchema,
     VerifyEmailSchema,
 } from './auth.validator';
+import { ApiResponse, AuthenticationError } from '@shared/json';
 
 export class AuthController {
     constructor(
@@ -22,145 +23,39 @@ export class AuthController {
     ) {}
 
     register = async (c: JSONContext<RegisterSchema>): Promise<Response> => {
-        try {
-            const body = c.req.valid('json');
-            const { accessToken, refreshToken } = await this.authService.createUser(body);
+        const body = c.req.valid('json');
+        const { accessToken, refreshToken } = await this.authService.createUser(body);
 
-            setCookie(c, 'access_token', accessToken, {
-                httpOnly: this.config.httpOnly_cookies,
-                secure: this.config.secure_cookies,
-                sameSite: 'strict',
-                path: '/',
-                maxAge: this.config.access_token_expiry_seconds,
-            });
+        setCookie(c, 'access_token', accessToken, {
+            httpOnly: this.config.httpOnly_cookies,
+            secure: this.config.secure_cookies,
+            sameSite: 'strict',
+            path: '/',
+            maxAge: this.config.access_token_expiry_seconds,
+        });
 
-            setCookie(c, 'refresh_token', refreshToken, {
-                httpOnly: this.config.httpOnly_cookies,
-                secure: this.config.secure_cookies,
-                sameSite: 'strict',
-                path: '/auth/refresh-token',
-                maxAge: this.config.refresh_token_expiry_seconds,
-            });
+        setCookie(c, 'refresh_token', refreshToken, {
+            httpOnly: this.config.httpOnly_cookies,
+            secure: this.config.secure_cookies,
+            sameSite: 'strict',
+            path: '/auth/refresh-token',
+            maxAge: this.config.refresh_token_expiry_seconds,
+        });
 
-            return c.json(
-                {
-                    success: true,
-                    message: 'User registered successfully',
-                    data: {
-                        accessToken,
-                        refreshToken,
-                    },
-                },
-                201,
-            );
-        } catch (error: any) {
-            this.logger.error('Registration failed', { error });
-            return c.json(
-                {
-                    success: false,
-                    message: 'Registration failed',
-                    error: error.message,
-                },
-                400,
-            );
-        }
+        return c.json(
+            ApiResponse.success({ accessToken, refreshToken }, 'User registered successfully'),
+            HTTP_STATUS.CREATED,
+        );
     };
 
-    /**
-     * @description provides two different responses -
-     *      1. If user is 2fa enabled, it will ask a redirect to otp-verify
-     *      2. If user is not 2fa enabled, it will log the user in
-     * @param c
-     * @returns
-     */
     login = async (c: JSONContext<LoginSchema>): Promise<Response> => {
-        try {
-            const body = c.req.valid('json');
-            const { twoFactorEnabled, authTokens } = await this.authService.login(body);
+        const body = c.req.valid('json');
+        const { twoFactorEnabled, authTokens } = await this.authService.login(body);
 
-            // if user is 2fa enabled, redirect to otp-verify
-            if (twoFactorEnabled) {
-                return c.redirect('/otp-verify', HTTP_STATUS.REDIRECT);
-            }
-
-            // if user is not 2fa enabled, log the user in
-            setCookie(c, 'access_token', authTokens.accessToken, {
-                httpOnly: this.config.httpOnly_cookies,
-                secure: this.config.secure_cookies,
-                sameSite: 'strict',
-                path: '/',
-                maxAge: this.config.access_token_expiry_seconds,
-            });
-
-            setCookie(c, 'refresh_token', authTokens.refreshToken, {
-                httpOnly: this.config.httpOnly_cookies,
-                secure: this.config.secure_cookies,
-                sameSite: 'strict',
-                path: '/auth/refresh-token',
-                maxAge: this.config.refresh_token_expiry_seconds,
-            });
-
-            return c.json(
-                {
-                    success: true,
-                    twoFactorEnabled,
-                    message: 'User logged in successfully',
-                    data: {
-                        accessToken: authTokens.accessToken,
-                        refreshToken: authTokens.refreshToken,
-                    },
-                },
-                HTTP_STATUS.OK,
-            );
-        } catch (error: any) {
-            this.logger.error('Login failed', { error });
-            return c.json(
-                {
-                    success: false,
-                    message: 'Login failed',
-                    error: error.message,
-                },
-                400,
-            );
-        }
-    };
-
-    logout = async (c: JSONContext<any>): Promise<Response> => {
-        const user = c.get('user');
-
-        if (!user) {
-            return c.json(
-                { success: false, message: 'Not authenticated' },
-                HTTP_STATUS.UNAUTHORIZED,
-            );
+        if (twoFactorEnabled) {
+            return c.redirect('/otp-verify', HTTP_STATUS.REDIRECT);
         }
 
-        const { success, message } = await this.authService.logout(user.id);
-
-        deleteCookie(c, 'access_token', { path: '/' });
-        deleteCookie(c, 'refresh_token', { path: '/auth/refresh-token' });
-
-        this.logger.info('Logout successful', { userId: user.id });
-        return c.json({ success, message });
-    };
-
-    forgotPassword = async (c: JSONContext<ForgotPasswordSchema>): Promise<Response> => {
-        this.logger.info('Forgot Password requested');
-        try {
-            const email = c.req.valid('json');
-            const { success, uuid, message } = await this.authService.forgotPassword(email);
-
-            return c.json({ success, uuid, message });
-        } catch (error: any) {
-            this.logger.error('Forgot password failed', { error });
-            return c.json({ success: false, message: error.message }, 400);
-        }
-    };
-
-    resetPassword = async (c: JSONContext<ResetPasswordSchema>): Promise<Response> => {
-        const { uuid, otp, password } = c.req.valid('json');
-        const authTokens = await this.authService.resetPassword(uuid, otp, password);
-        this.logger.info('Reset Password requested');
         setCookie(c, 'access_token', authTokens.accessToken, {
             httpOnly: this.config.httpOnly_cookies,
             secure: this.config.secure_cookies,
@@ -178,73 +73,117 @@ export class AuthController {
         });
 
         return c.json(
-            {
-                success: true,
-                message: 'Password reset successful',
-                data: {
+            ApiResponse.success(
+                {
+                    accessToken: authTokens.accessToken,
+                    refreshToken: authTokens.refreshToken,
+                    twoFactorEnabled,
+                },
+                'User logged in successfully',
+            ),
+            HTTP_STATUS.OK,
+        );
+    };
+
+    logout = async (c: JSONContext<any>): Promise<Response> => {
+        const user = c.get('user');
+        if (!user) {
+            throw new AuthenticationError('Not authenticated');
+        }
+
+        const { message } = await this.authService.logout(user.id);
+
+        deleteCookie(c, 'access_token', { path: '/' });
+        deleteCookie(c, 'refresh_token', { path: '/auth/refresh-token' });
+
+        this.logger.info('Logout successful', { userId: user.id });
+        return c.json(ApiResponse.success(null, message), HTTP_STATUS.OK);
+    };
+
+    forgotPassword = async (c: JSONContext<ForgotPasswordSchema>): Promise<Response> => {
+        const email = c.req.valid('json');
+        const { uuid, message } = await this.authService.forgotPassword(email);
+        return c.json(ApiResponse.success({ uuid }, message), HTTP_STATUS.OK);
+    };
+
+    resetPassword = async (c: JSONContext<ResetPasswordSchema>): Promise<Response> => {
+        const { uuid, otp, password } = c.req.valid('json');
+        const authTokens = await this.authService.resetPassword(uuid, otp, password);
+
+        setCookie(c, 'access_token', authTokens.accessToken, {
+            httpOnly: this.config.httpOnly_cookies,
+            secure: this.config.secure_cookies,
+            sameSite: 'strict',
+            path: '/',
+            maxAge: this.config.access_token_expiry_seconds,
+        });
+
+        setCookie(c, 'refresh_token', authTokens.refreshToken, {
+            httpOnly: this.config.httpOnly_cookies,
+            secure: this.config.secure_cookies,
+            sameSite: 'strict',
+            path: '/auth/refresh-token',
+            maxAge: this.config.refresh_token_expiry_seconds,
+        });
+
+        return c.json(
+            ApiResponse.success(
+                {
                     accessToken: authTokens.accessToken,
                     refreshToken: authTokens.refreshToken,
                 },
-            },
+                'Password reset successful',
+            ),
             HTTP_STATUS.OK,
         );
     };
 
     rotateTokens = async (c: JSONContext<any>): Promise<Response> => {
-        try {
-            const refreshTokenCookie = getCookie(c, 'refresh_token');
-            const body = await c.req.json().catch(() => ({}));
-            const refreshToken =
-                refreshTokenCookie || body.refreshToken || c.req.header('X-Refresh-Token');
+        const refreshTokenCookie = getCookie(c, 'refresh_token');
+        const body = await c.req.json().catch(() => ({}));
+        const refreshToken =
+            refreshTokenCookie || body.refreshToken || c.req.header('X-Refresh-Token');
 
-            if (!refreshToken) {
-                throw new Error('Refresh token required');
-            }
+        if (!refreshToken) {
+            throw new AuthenticationError('Refresh token required');
+        }
 
-            const { accessToken, refreshToken: newRefreshToken } =
-                await this.authService.rotateTokens(refreshToken);
+        const { accessToken, refreshToken: newRefreshToken } =
+            await this.authService.rotateTokens(refreshToken);
 
-            setCookie(c, 'access_token', accessToken, {
-                httpOnly: this.config.httpOnly_cookies,
-                secure: this.config.secure_cookies,
-                sameSite: 'strict',
-                path: '/',
-                maxAge: this.config.access_token_expiry_seconds,
-            });
+        setCookie(c, 'access_token', accessToken, {
+            httpOnly: this.config.httpOnly_cookies,
+            secure: this.config.secure_cookies,
+            sameSite: 'strict',
+            path: '/',
+            maxAge: this.config.access_token_expiry_seconds,
+        });
 
-            setCookie(c, 'refresh_token', newRefreshToken, {
-                httpOnly: this.config.httpOnly_cookies,
-                secure: this.config.secure_cookies,
-                sameSite: 'strict',
-                path: '/auth/refresh-token',
-                maxAge: this.config.refresh_token_expiry_seconds,
-            });
+        setCookie(c, 'refresh_token', newRefreshToken, {
+            httpOnly: this.config.httpOnly_cookies,
+            secure: this.config.secure_cookies,
+            sameSite: 'strict',
+            path: '/auth/refresh-token',
+            maxAge: this.config.refresh_token_expiry_seconds,
+        });
 
-            this.logger.info('Token rotation successful');
+        this.logger.info('Token rotation successful');
 
-            return c.json({
-                success: true,
-                message: 'Token rotation successful',
-                data: {
+        return c.json(
+            ApiResponse.success(
+                {
                     accessToken,
                     refreshToken: newRefreshToken,
                 },
-            });
-        } catch (error: any) {
-            this.logger.error('Token rotation failed', { error });
-            return c.json(
-                {
-                    success: false,
-                    message: error.message || 'Token rotation failed',
-                },
-                HTTP_STATUS.UNAUTHORIZED,
-            );
-        }
+                'Token rotation successful',
+            ),
+            HTTP_STATUS.OK,
+        );
     };
 
     verifyEmail = async (c: JSONContext<VerifyEmailSchema>): Promise<Response> => {
         const { email, token, code } = c.req.valid('json');
         this.logger.info('Email verification requested', { email });
-        return c.json({ message: 'Email verified successfully' });
+        return c.json(ApiResponse.success(null, 'Email verified successfully'), HTTP_STATUS.OK);
     };
 }

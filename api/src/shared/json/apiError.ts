@@ -6,6 +6,7 @@ export class AppError extends Error {
         public readonly message: string,
         public readonly isOperational = true,
         public readonly code?: string,
+        public readonly details?: any,
     ) {
         super(message);
         this.name = this.constructor.name;
@@ -14,10 +15,11 @@ export class AppError extends Error {
 
     toJSON() {
         return {
+            success: false,
+            message: this.message,
             error: {
-                code: this.code,
-                message: this.message,
-                statusCode: this.statusCode,
+                code: this.code || 'INTERNAL_ERROR',
+                details: this.details,
             },
         };
     }
@@ -28,18 +30,7 @@ export class ValidationError extends AppError {
         message: string,
         public readonly fields?: Record<string, string[]>,
     ) {
-        super(400, message, true, 'VALIDATION_ERROR');
-    }
-
-    toJSON() {
-        return {
-            error: {
-                code: this.code,
-                message: this.message,
-                statusCode: this.statusCode,
-                fields: this.fields,
-            },
-        };
+        super(400, message, true, 'VALIDATION_ERROR', fields);
     }
 }
 
@@ -60,7 +51,7 @@ export class ForbiddenError extends AppError {
         message = 'You do not have permission to perform this action',
         public readonly requiredPermission?: string,
     ) {
-        super(403, message, true, 'FORBIDDEN');
+        super(403, message, true, 'FORBIDDEN', { requiredPermission });
     }
 }
 
@@ -81,7 +72,7 @@ export class RateLimitError extends AppError {
         message = 'Too many requests',
         public readonly retryAfter?: number,
     ) {
-        super(429, message, true, 'RATE_LIMIT_EXCEEDED');
+        super(429, message, true, 'RATE_LIMIT_EXCEEDED', { retryAfter });
     }
 }
 
