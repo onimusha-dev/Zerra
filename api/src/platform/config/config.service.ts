@@ -155,11 +155,11 @@ export class ConfigService {
     }
 
     get smtpUser(): string {
-        return '';
+        return this.config.SMTPUSER;
     }
 
     get smtpPass(): string {
-        return '';
+        return this.config.SMTPPASS;
     }
 }
 

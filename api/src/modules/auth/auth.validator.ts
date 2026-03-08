@@ -73,7 +73,12 @@ export const forgotPasswordSchema = z
 
 export const resetPasswordSchema = z
     .object({
-        email: z.email('Invalid email address'),
+        uuid: z.string().uuid('Invalid reset session'),
+        otp: z
+            .string()
+            .min(6, 'Code must be 6 characters')
+            .max(6, 'Code must be 6 characters')
+            .regex(/^[a-z0-9]{6}$/i, 'Code must be 6 alphanumeric characters'),
         password: z
             .string()
             .min(8, 'Password must be at least 8 characters long')
@@ -87,17 +92,18 @@ export const resetPasswordSchema = z
         message: 'Passwords do not match',
         path: ['confirmPassword'],
     })
-    .transform(({ confirmPassword, ...rest }) => rest);
+    .transform(({ confirmPassword, ...data }) => {
+        return { ...data, otp: data.otp.toLowerCase() };
+    });
 
-// no idea about what to do with this
 export const verifyEmailSchema = z.object({
     email: z.email('Invalid email address'),
     token: z.uuid('Invalid token'),
     code: z
         .string()
-        .min(6, 'Code must be at least 6 digits')
-        .max(6, 'Code must be at most 6 digits')
-        .regex(/^[0-9]{6}$/, 'Code must be 6 digits'),
+        .min(6, 'Code must be at least 6 characters')
+        .max(6, 'Code must be at most 6 characters')
+        .regex(/^[a-z0-9]{6}$/i, 'Code must be 6 alphanumeric characters'),
 });
 
 export type RegisterSchema = z.infer<typeof registerSchema>;

@@ -19,7 +19,7 @@ model User {
   settings         Json       @default("{}")
   timezone         String     @default("UTC")
   avatar           String?
-  password         String?    @map("password_hash")
+  password         String    @map("password_hash")
   twoFactorEnabled Boolean    @default(false) @map("two_factor_enabled")
   refreshToken     String?    @map("refresh_token")
   isVerified       Boolean    @default(false) @map("is_verified")

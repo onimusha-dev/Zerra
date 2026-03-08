@@ -1,20 +1,19 @@
-import { ConfigService } from '@platform/config/config.service';
-import { Logger, pino } from 'pino';
+import { ConfigService } from '@platform/config';
+import pino, { type Logger } from 'pino';
+
+interface LogMeta {
+    [key: string]: unknown;
+}
 
 export class LoggerService {
     private static instance: LoggerService | null = null;
     private logger: Logger;
-    private readonly serviceName: String = 'backend';
+    private readonly serviceName: string = 'backend';
 
     constructor(private readonly config: ConfigService) {
         this.logger = this.createLogger();
     }
 
-    /**
-     *
-     * @param config iinstance of config service
-     * @returns istance of logger service
-     */
     static getInstance(config: ConfigService): LoggerService {
         if (!this.instance) {
             this.instance = new LoggerService(config);
@@ -26,15 +25,19 @@ export class LoggerService {
         LoggerService.instance = null;
     }
 
-    createLogger(): Logger {
+    private createLogger(): Logger {
         const isProduction = this.config.isProduction;
 
         const baseOptions = {
-            level: this.config.logLevel.toString(),
+            level: this.config.logLevel || 'debug',
             base: {
                 service: this.serviceName,
             },
             timestamp: pino.stdTimeFunctions.isoTime,
+            serializers: {
+                err: pino.stdSerializers.err,
+                error: pino.stdSerializers.err,
+            },
         };
 
         if (isProduction) {
@@ -47,48 +50,113 @@ export class LoggerService {
                 target: 'pino-pretty',
                 options: {
                     colorize: true,
-                    translateTime: 'yyyy-mm-dd HH:MM:ss.l',
-                    ignore: 'pid,hostname',
+                    translateTime: 'HH:MM:ss',
+                    ignore: 'pid,hostname,service',
+                    errorLikeObjectKeys: ['err', 'error'],
+                    levelFirst: false,
+                    singleLine: true,
+                    colorizeObjects: true,
+                    customColors:
+                        'trace:gray,debug:blue,info:green,warn:yellow,error:red,fatal:bgRed',
+                    messageFormat: '{msg}',
                 },
             },
         });
     }
 
-    info(message: string, obj?: any) {
-        if (obj) {
-            this.logger.info(obj, message);
-        } else {
-            this.logger.info(message);
+    /**
+     * Robust argument formatter to ensure Errors always have stack traces in terminal.
+     */
+    private formatArgs(msgOrObj: any, obj?: any): [any, string?] | [string] {
+        // If first arg is an Error
+        if (msgOrObj instanceof Error) {
+            const errorObj = { err: msgOrObj, error: msgOrObj };
+            return obj
+                ? [{ ...errorObj, meta: obj }, msgOrObj.message]
+                : [errorObj, msgOrObj.message];
         }
+
+        // If second arg is an Error
+        if (obj instanceof Error) {
+            return [{ err: obj, error: obj }, msgOrObj];
+        }
+
+        // If second arg is an object that might contain an Error
+        if (obj && typeof obj === 'object') {
+            const potentialErr = obj.err || obj.error || obj.exception;
+            if (potentialErr instanceof Error) {
+                return [{ ...obj, err: potentialErr, error: potentialErr }, msgOrObj];
+            }
+            return [obj, msgOrObj];
+        }
+
+        // Generic case
+        if (obj !== undefined) {
+            return [{ meta: obj }, msgOrObj];
+        }
+
+        return [msgOrObj];
     }
 
-    trace() {}
-    warn(message: string, obj?: any) {
-        if (obj) {
-            this.logger.warn(obj, message);
-        } else {
-            this.logger.warn(message);
-        }
+    info(message: any, obj?: any) {
+        const args = this.formatArgs(message, obj);
+        // @ts-ignore
+        this.logger.info(...args);
     }
-    debug(message: string, obj?: any) {
-        if (obj) {
-            this.logger.debug(obj, message);
-        } else {
-            this.logger.debug(message);
-        }
+
+    trace(message: any, obj?: any) {
+        const args = this.formatArgs(message, obj);
+        // @ts-ignore
+        this.logger.trace(...args);
     }
-    error(message: string, obj?: any) {
-        if (obj) {
-            this.logger.error(obj, message);
-        } else {
-            this.logger.error(message);
-        }
+
+    warn(message: any, obj?: any) {
+        const args = this.formatArgs(message, obj);
+        // @ts-ignore
+        this.logger.warn(...args);
     }
-    fatal(message: string, obj?: any) {
-        if (obj) {
-            this.logger.fatal(obj, message);
-        } else {
-            this.logger.fatal(message);
-        }
+
+    debug(message: any, obj?: any) {
+        const args = this.formatArgs(message, obj);
+        // @ts-ignore
+        this.logger.debug(...args);
+    }
+
+    error(message: any, obj?: any) {
+        const args = this.formatArgs(message, obj);
+        // @ts-ignore
+        this.logger.error(...args);
+    }
+
+    fatal(message: any, obj?: any) {
+        const args = this.formatArgs(message, obj);
+        // @ts-ignore
+        this.logger.fatal(...args);
+    }
+
+    logRequest(
+        method: string,
+        url: string,
+        statusCode: number,
+        durationMs: number,
+        meta?: LogMeta,
+    ): void {
+        const level = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'info';
+
+        const logData = {
+            ...meta,
+            http: {
+                method,
+                url,
+                statusCode,
+                durationMs,
+            },
+        };
+
+        this.logger[level](logData, `${method} ${url} ${statusCode}`);
+    }
+
+    getPinoLogger(): Logger {
+        return this.logger;
     }
 }

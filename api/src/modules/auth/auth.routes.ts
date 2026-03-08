@@ -1,11 +1,20 @@
 import { Hono } from 'hono';
-
 import { AuthController } from './auth.controller';
+import { AuthMiddleware } from '@platform/http/middleware';
+import { AppEnv } from '@platform/http/types';
+import {
+    registerSchema,
+    loginSchema,
+    forgotPasswordSchema,
+    resetPasswordSchema,
+    verifyEmailSchema,
+} from './auth.validator';
+import { zValidator } from '@hono/zod-validator';
 
 /**
  *
  * @param controller AuthController
- * @returns Hono
+ * @returns Hono<AppEnv>
  *
  *  @POST /login         -> liveness
  *  @POST /register   -> readiness
@@ -15,19 +24,32 @@ import { AuthController } from './auth.controller';
  *  @POST /verify-email -> dependency checks
  *
  */
-export function createAuthRoutes(controller: AuthController): Hono {
-    const router = new Hono();
+export function createAuthRoutes(
+    controller: AuthController,
+    authMiddleware: AuthMiddleware,
+): Hono<AppEnv> {
+    const router = new Hono<AppEnv>();
+    const middleware = authMiddleware.validateUserSession;
 
-    router.post('/register', controller.register);
-    router.post('/login', controller.login);
+    router.use('/logout', middleware);
+    router.post('/register', zValidator('json', registerSchema), controller.register);
+    router.post('/login', zValidator('json', loginSchema), controller.login);
     router.post('/logout', controller.logout);
 
-    router.post('/forgot-password', controller.forgotPassword);
-    router.post('/reset-password', controller.resetPassword);
+    router.post(
+        '/forgot-password',
+        zValidator('json', forgotPasswordSchema),
+        controller.forgotPassword,
+    );
+    router.post(
+        '/reset-password',
+        zValidator('json', resetPasswordSchema),
+        controller.resetPassword,
+    );
 
     router.post('/refresh-token', controller.rotateTokens);
 
-    router.post('/verify-email', controller.verifyEmail);
+    router.post('/verify-email', zValidator('json', verifyEmailSchema), controller.verifyEmail);
 
     return router;
 }
