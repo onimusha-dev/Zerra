@@ -1,6 +1,7 @@
 import { AuthService } from '@modules/auth/auth.service';
 import { ConfigService } from '@platform/config';
 import { LoggerService } from '@platform/logger/logger.service';
+import { AppEnv } from '@platform/http/types';
 import { Context, Next } from 'hono';
 import { getCookie } from 'hono/cookie';
 import { HTTPException } from 'hono/http-exception';
@@ -12,7 +13,7 @@ export class AuthMiddleware {
         private readonly authService: AuthService,
     ) {}
 
-    validateUserSession = async (c: Context, next: Next) => {
+    validateUserSession = async (c: Context<AppEnv>, next: Next) => {
         const authHeader = c.req.header('Authorization');
         const accessToken = getCookie(c, 'access_token');
 

@@ -79,8 +79,20 @@ export const resetPasswordSchema = z
             .min(6, 'Code must be 6 characters')
             .max(6, 'Code must be 6 characters')
             .regex(/^[a-z0-9]{6}$/i, 'Code must be 6 alphanumeric characters'),
+        password: z
+            .string()
+            .min(8, 'Password must be at least 8 characters long')
+            .max(24, 'Password must be at most 24 characters long'),
+        confirmPassword: z
+            .string()
+            .min(8, 'Confirm Password must be at least 8 characters long')
+            .max(24, 'Confirm Password must be at most 24 characters long'),
     })
-    .transform((data) => {
+    .refine((data) => data.password === data.confirmPassword, {
+        message: 'Passwords do not match',
+        path: ['confirmPassword'],
+    })
+    .transform(({ confirmPassword, ...data }) => {
         return { ...data, otp: data.otp.toLowerCase() };
     });
 

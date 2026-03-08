@@ -16,6 +16,9 @@ import { SmtpService } from '@shared/smtp/smtp.service';
 import { HTTPException } from 'hono/http-exception';
 import { AppError } from '@shared/json/apiError';
 import { AuthMiddleware } from '@platform/http/middleware';
+import { UserRepository } from '@modules/users/users.repository';
+import { AppEnv } from '@platform/http/types';
+import { UsersService } from '@modules/users/users.service';
 
 export class Application {
     private static instance: Application | null = null;
@@ -155,11 +158,11 @@ export class Application {
     }
 
     private registerModules() {
-        const mainRouter = new Hono();
+        const mainRouter = new Hono<AppEnv>();
         const healthController = new HealthController(this.database);
 
-        const authRepository = new AuthRepository(this.database);
-        const authService = new AuthService(authRepository, this.logger, this.cache, this.smtp);
+        const userRepository = new UserRepository(this.database);
+        const authService = new AuthService(userRepository, this.logger, this.cache, this.smtp);
         const authController = new AuthController(
             this.config,
             authService,
@@ -167,13 +170,13 @@ export class Application {
             this.logger,
         );
 
-        const usersController = new UsersController(this.database, this.cache, this.logger);
+        const userService = new UsersService(userRepository, this.logger);
+        const usersController = new UsersController(userService, this.cache, this.logger);
 
-        const middleware = new AuthMiddleware(this.config, this.logger, authService);
-        mainRouter.use('/auth/logout', middleware.validateUserSession);
+        const authMiddleware = new AuthMiddleware(this.config, this.logger, authService);
         mainRouter.route('/health', createHealthRoutes(healthController));
-        mainRouter.route('/auth', createAuthRoutes(authController));
-        mainRouter.route('/user', createUsersRoutes(usersController));
+        mainRouter.route('/auth', createAuthRoutes(authController, authMiddleware));
+        mainRouter.route('/user', createUsersRoutes(usersController, authMiddleware));
 
         this.httpServer.registerRoutes(mainRouter);
         this.logger.debug('All routes configured.');

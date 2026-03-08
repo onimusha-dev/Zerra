@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { AuthController } from './auth.controller';
-import { validate } from '@platform/http/middleware';
+import { AuthMiddleware } from '@platform/http/middleware';
+import { AppEnv } from '@platform/http/types';
 import {
     registerSchema,
     loginSchema,
@@ -8,11 +9,12 @@ import {
     resetPasswordSchema,
     verifyEmailSchema,
 } from './auth.validator';
+import { zValidator } from '@hono/zod-validator';
 
 /**
  *
  * @param controller AuthController
- * @returns Hono
+ * @returns Hono<AppEnv>
  *
  *  @POST /login         -> liveness
  *  @POST /register   -> readiness
@@ -22,23 +24,32 @@ import {
  *  @POST /verify-email -> dependency checks
  *
  */
-export function createAuthRoutes(controller: AuthController): Hono {
-    const router = new Hono();
+export function createAuthRoutes(
+    controller: AuthController,
+    authMiddleware: AuthMiddleware,
+): Hono<AppEnv> {
+    const router = new Hono<AppEnv>();
+    const middleware = authMiddleware.validateUserSession;
 
-    router.post('/register', validate('json', registerSchema), controller.register);
-    router.post('/login', validate('json', loginSchema), controller.login);
+    router.use('/logout', middleware);
+    router.post('/register', zValidator('json', registerSchema), controller.register);
+    router.post('/login', zValidator('json', loginSchema), controller.login);
     router.post('/logout', controller.logout);
 
     router.post(
         '/forgot-password',
-        validate('json', forgotPasswordSchema),
+        zValidator('json', forgotPasswordSchema),
         controller.forgotPassword,
     );
-    router.post('/reset-password', validate('json', resetPasswordSchema), controller.resetPassword);
+    router.post(
+        '/reset-password',
+        zValidator('json', resetPasswordSchema),
+        controller.resetPassword,
+    );
 
     router.post('/refresh-token', controller.rotateTokens);
 
-    router.post('/verify-email', validate('json', verifyEmailSchema), controller.verifyEmail);
+    router.post('/verify-email', zValidator('json', verifyEmailSchema), controller.verifyEmail);
 
     return router;
 }

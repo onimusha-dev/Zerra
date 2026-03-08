@@ -1,10 +1,17 @@
 import { CacheService } from '@platform/cache';
 import { LoggerService } from '@platform/logger/logger.service';
 import { AuthService } from './auth.service';
-import { Context } from 'hono';
 import { setCookie, deleteCookie, getCookie } from 'hono/cookie';
 import { ConfigService } from '@platform/config';
 import { HTTP_STATUS } from '@shared/constants/httpStatus';
+import { JSONContext } from '@platform/http/types';
+import {
+    LoginSchema,
+    RegisterSchema,
+    ForgotPasswordSchema,
+    ResetPasswordSchema,
+    VerifyEmailSchema,
+} from './auth.validator';
 
 export class AuthController {
     constructor(
@@ -14,9 +21,9 @@ export class AuthController {
         private readonly logger: LoggerService,
     ) {}
 
-    register = async (c: Context): Promise<Response> => {
+    register = async (c: JSONContext<RegisterSchema>): Promise<Response> => {
         try {
-            const body = await c.req.json();
+            const body = c.req.valid('json');
             const { accessToken, refreshToken } = await this.authService.createUser(body);
 
             setCookie(c, 'access_token', accessToken, {
@@ -66,9 +73,9 @@ export class AuthController {
      * @param c
      * @returns
      */
-    login = async (c: Context): Promise<Response> => {
+    login = async (c: JSONContext<LoginSchema>): Promise<Response> => {
         try {
-            const body = await c.req.json();
+            const body = c.req.valid('json');
             const { twoFactorEnabled, authTokens } = await this.authService.login(body);
 
             // if user is 2fa enabled, redirect to otp-verify
@@ -118,8 +125,8 @@ export class AuthController {
         }
     };
 
-    logout = async (c: Context): Promise<Response> => {
-        const user = c.get('user') as any;
+    logout = async (c: JSONContext<any>): Promise<Response> => {
+        const user = c.get('user');
 
         if (!user) {
             return c.json(
@@ -128,7 +135,7 @@ export class AuthController {
             );
         }
 
-        const { success, message } = await this.authService.logout(parseInt(user.id));
+        const { success, message } = await this.authService.logout(user.id);
 
         deleteCookie(c, 'access_token', { path: '/' });
         deleteCookie(c, 'refresh_token', { path: '/auth/refresh-token' });
@@ -137,12 +144,10 @@ export class AuthController {
         return c.json({ success, message });
     };
 
-    forgotPassword = async (c: Context): Promise<Response> => {
+    forgotPassword = async (c: JSONContext<ForgotPasswordSchema>): Promise<Response> => {
         this.logger.info('Forgot Password requested');
         try {
-            const body = await c.req.json();
-            const { email } = body;
-
+            const email = c.req.valid('json');
             const { success, uuid, message } = await this.authService.forgotPassword(email);
 
             return c.json({ success, uuid, message });
@@ -152,9 +157,9 @@ export class AuthController {
         }
     };
 
-    resetPassword = async (c: Context): Promise<Response> => {
-        const { uuid, otp } = await c.req.json();
-        const authTokens = await this.authService.resetPassword(uuid, otp);
+    resetPassword = async (c: JSONContext<ResetPasswordSchema>): Promise<Response> => {
+        const { uuid, otp, password } = c.req.valid('json');
+        const authTokens = await this.authService.resetPassword(uuid, otp, password);
         this.logger.info('Reset Password requested');
         setCookie(c, 'access_token', authTokens.accessToken, {
             httpOnly: this.config.httpOnly_cookies,
@@ -185,7 +190,7 @@ export class AuthController {
         );
     };
 
-    rotateTokens = async (c: Context): Promise<Response> => {
+    rotateTokens = async (c: JSONContext<any>): Promise<Response> => {
         try {
             const refreshTokenCookie = getCookie(c, 'refresh_token');
             const body = await c.req.json().catch(() => ({}));
@@ -237,8 +242,9 @@ export class AuthController {
         }
     };
 
-    verifyEmail = async (c: Context): Promise<Response> => {
-        this.logger.info('Email verification requested');
+    verifyEmail = async (c: JSONContext<VerifyEmailSchema>): Promise<Response> => {
+        const { email, token, code } = c.req.valid('json');
+        this.logger.info('Email verification requested', { email });
         return c.json({ message: 'Email verified successfully' });
     };
 }

@@ -1,12 +1,12 @@
 import { LoggerService } from '@platform/logger/logger.service';
-import { AuthRepository } from './auth.repository';
 import { generateAuthTokens, hashString, verifyHash, verifyToken } from '@shared/utils/auth';
 import { CacheService } from '@platform/cache';
 import { SmtpService } from '@shared/smtp/smtp.service';
+import { UserRepository } from '../users/users.repository';
 
 export class AuthService {
     constructor(
-        private authRepository: AuthRepository,
+        private userRepository: UserRepository,
         private logger: LoggerService,
         private cache: CacheService,
         private smtp: SmtpService,
@@ -16,8 +16,8 @@ export class AuthService {
         const { name, email, password, username, bio, link, avatar, timezone } = body;
 
         const isUserExist =
-            (await this.authRepository.findUserByEmail(email)) ||
-            (await this.authRepository.findUserByUsername(username));
+            (await this.userRepository.findUserByEmail(email)) ||
+            (await this.userRepository.findUserByUsername(username));
 
         if (isUserExist) {
             throw new Error('User already exists');
@@ -36,7 +36,7 @@ export class AuthService {
             timezone,
         };
 
-        const createdUser = await this.authRepository.createUser(userData);
+        const createdUser = await this.userRepository.createUser(userData);
 
         const { accessToken, refreshToken } = generateAuthTokens({
             id: createdUser.id,
@@ -45,24 +45,22 @@ export class AuthService {
         });
 
         const hashedRefreshToken = await hashString(refreshToken);
-        await this.authRepository.updateRefreshToken(createdUser.id, hashedRefreshToken);
+        await this.userRepository.updateRefreshToken(createdUser.id, hashedRefreshToken);
 
         this.logger.info('Registering new user', { email, username });
 
         return { accessToken, refreshToken };
     }
 
-    async login(
-        body: any,
-    ): Promise<{
+    async login(body: any): Promise<{
         twoFactorEnabled: boolean;
         authTokens: { accessToken: string; refreshToken: string };
     }> {
         const { email, password, username } = body;
 
-        const user =
-            (await this.authRepository.findUserByEmail(email)) ||
-            (await this.authRepository.findUserByUsername(username));
+        const user = email
+            ? await this.userRepository.findUserByEmail(email)
+            : await this.userRepository.findUserByUsername(username);
 
         if (!user) {
             throw new Error('User does not exist');
@@ -86,12 +84,8 @@ export class AuthService {
             username: user.username,
         });
 
-        // TODO: Add caching
-        // and add otp verification
-        // await this.cache.set(`user:${user.id}`, JSON.stringify(user), 60 * 60 * 24);
-
         const hashedRefreshToken = await hashString(refreshToken);
-        await this.authRepository.updateRefreshToken(user.id, hashedRefreshToken);
+        await this.userRepository.updateRefreshToken(user.id, hashedRefreshToken);
 
         this.logger.info('User logged in successfully', { userId: user.id });
 
@@ -102,13 +96,13 @@ export class AuthService {
     }
 
     async logout(id: number): Promise<{ success: boolean; message: string }> {
-        const user = await this.authRepository.findUserById(id);
+        const user = await this.userRepository.findUserById(id);
 
         if (!user) {
             throw Error('User does not exists.');
         }
 
-        const success = await this.authRepository.updateRefreshToken(user.id, '');
+        const success = await this.userRepository.updateRefreshToken(user.id, null);
 
         return {
             success: !!success,
@@ -120,7 +114,7 @@ export class AuthService {
         refreshToken: string,
     ): Promise<{ accessToken: string; refreshToken: string }> {
         const id = this.verifyRefreshToken(refreshToken);
-        const user = await this.authRepository.findUserById(id);
+        const user = await this.userRepository.findUserById(id);
 
         if (!user || !user.refreshToken) {
             throw new Error('Session expired or user not found');
@@ -138,7 +132,7 @@ export class AuthService {
         });
 
         const hashedRefreshToken = await hashString(tokens.refreshToken);
-        await this.authRepository.updateRefreshToken(user.id, hashedRefreshToken);
+        await this.userRepository.updateRefreshToken(user.id, hashedRefreshToken);
 
         return tokens;
     }
@@ -146,16 +140,16 @@ export class AuthService {
     async forgotPassword(
         email: string,
     ): Promise<{ success: boolean; uuid: string; message: string }> {
-        const user = await this.authRepository.findUserByEmail(email);
+        const user = await this.userRepository.findUserByEmail(email);
 
         if (!user) {
             throw new Error('User does not exists.');
         }
-        await this.authRepository.updateRefreshToken(user.id, '');
+        await this.userRepository.updateRefreshToken(user.id, null);
 
         const uuid = crypto.randomUUID();
         const otp = this.generateOTP();
-        const hashedOtp = await hashString(otp); // FIXED: Added await
+        const hashedOtp = await hashString(otp);
         const isOtpCached = await this.cache.set(
             `otp:${uuid}`,
             { id: user.id, otp: hashedOtp, attempts: 1 },
@@ -177,6 +171,7 @@ export class AuthService {
     async resetPassword(
         uuid: string,
         otp: string,
+        newPassword: string,
     ): Promise<{ accessToken: string; refreshToken: string }> {
         const cachedOtpObject: { id: number; otp: string; attempts: number } | null =
             await this.cache.get(`otp:${uuid}`);
@@ -189,16 +184,14 @@ export class AuthService {
             throw new Error('too many attempts');
         }
 
-        const user = await this.authRepository.findUserById(cachedOtpObject.id);
+        const user = await this.userRepository.findUserById(cachedOtpObject.id);
         if (!user) {
             throw new Error('User does not exist');
         }
 
-        // FIXED: Lowercase for case-insensitivity
         const isOtpValid = await verifyHash(cachedOtpObject.otp, otp.toLowerCase());
 
         if (!isOtpValid) {
-            // Increment attempts on failure
             await this.cache.set(
                 `otp:${uuid}`,
                 { ...cachedOtpObject, attempts: cachedOtpObject.attempts + 1 },
@@ -207,13 +200,22 @@ export class AuthService {
             throw new Error('Invalid OTP');
         }
 
+        if (newPassword) {
+            const hashedPassword = await hashString(newPassword);
+            await this.userRepository.updatePassword(user.id, hashedPassword);
+            this.logger.info('User password reset successfully', { userId: user.id });
+        }
+
         const tokens = generateAuthTokens({
             id: user.id,
             email: user.email,
             username: user.username,
         });
-        await this.authRepository.updateRefreshToken(user.id, tokens.refreshToken);
+
+        const hashedRefreshToken = await hashString(tokens.refreshToken);
+        await this.userRepository.updateRefreshToken(user.id, hashedRefreshToken);
         await this.cache.delete(`otp:${uuid}`);
+
         return tokens;
     }
 
