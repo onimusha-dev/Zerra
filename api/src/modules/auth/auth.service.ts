@@ -3,6 +3,13 @@ import { generateAuthTokens, hashString, verifyHash, verifyToken } from '@shared
 import { CacheService } from '@platform/cache';
 import { SmtpService } from '@shared/smtp/smtp.service';
 import { UserRepository } from '../users/users.repository';
+import {
+    AuthenticationError,
+    ConflictError,
+    InternalServerError,
+    NotFoundError,
+    RateLimitError,
+} from '@shared/json';
 
 export class AuthService {
     constructor(
@@ -20,7 +27,7 @@ export class AuthService {
             (await this.userRepository.findUserByUsername(username));
 
         if (isUserExist) {
-            throw new Error('User already exists');
+            throw new ConflictError('User already exists');
         }
 
         const hashedPassword = await hashString(password);
@@ -63,11 +70,11 @@ export class AuthService {
             : await this.userRepository.findUserByUsername(username);
 
         if (!user) {
-            throw new Error('User does not exist');
+            throw new NotFoundError('User');
         }
 
         if (!user.password) {
-            throw new Error(
+            throw new AuthenticationError(
                 'User has no saved password. Please use social login or reset password.',
             );
         }
@@ -75,7 +82,7 @@ export class AuthService {
         const isPasswordCorrect = await verifyHash(user.password, password);
 
         if (!isPasswordCorrect) {
-            throw new Error('Invalid password');
+            throw new AuthenticationError('Invalid password');
         }
 
         const { accessToken, refreshToken } = generateAuthTokens({
@@ -99,7 +106,7 @@ export class AuthService {
         const user = await this.userRepository.findUserById(id);
 
         if (!user) {
-            throw Error('User does not exists.');
+            throw new NotFoundError('User');
         }
 
         const success = await this.userRepository.updateRefreshToken(user.id, null);
@@ -117,12 +124,12 @@ export class AuthService {
         const user = await this.userRepository.findUserById(id);
 
         if (!user || !user.refreshToken) {
-            throw new Error('Session expired or user not found');
+            throw new AuthenticationError('Session expired or user not found');
         }
 
         const isMatch = await verifyHash(user.refreshToken, refreshToken);
         if (!isMatch) {
-            throw new Error('Invalid refresh token session');
+            throw new AuthenticationError('Invalid refresh token session');
         }
 
         const tokens = generateAuthTokens({
@@ -143,7 +150,7 @@ export class AuthService {
         const user = await this.userRepository.findUserByEmail(email);
 
         if (!user) {
-            throw new Error('User does not exists.');
+            throw new NotFoundError('User');
         }
         await this.userRepository.updateRefreshToken(user.id, null);
 
@@ -157,7 +164,9 @@ export class AuthService {
         );
         this.logger.debug(`otp:::::::::::::::: ${otp}`);
         if (!isOtpCached) {
-            throw new Error('Internal server error, please try again in a few minutes');
+            throw new InternalServerError(
+                'Internal server error, please try again in a few minutes',
+            );
         }
 
         await this.smtp.sendOtpMail({
@@ -177,16 +186,16 @@ export class AuthService {
             await this.cache.get(`otp:${uuid}`);
 
         if (!cachedOtpObject) {
-            throw new Error('Otp verification timeout');
+            throw new AuthenticationError('Otp verification timeout');
         }
 
         if (cachedOtpObject.attempts > 10) {
-            throw new Error('too many attempts');
+            throw new RateLimitError('too many attempts');
         }
 
         const user = await this.userRepository.findUserById(cachedOtpObject.id);
         if (!user) {
-            throw new Error('User does not exist');
+            throw new NotFoundError('User');
         }
 
         const isOtpValid = await verifyHash(cachedOtpObject.otp, otp.toLowerCase());
@@ -197,7 +206,7 @@ export class AuthService {
                 { ...cachedOtpObject, attempts: cachedOtpObject.attempts + 1 },
                 5 * 60,
             );
-            throw new Error('Invalid OTP');
+            throw new AuthenticationError('Invalid OTP');
         }
 
         if (newPassword) {
@@ -222,7 +231,7 @@ export class AuthService {
     verifyAccessToken(token: string) {
         const payload = verifyToken(token, 'access');
         if (!payload) {
-            throw new Error('Invalid session');
+            throw new AuthenticationError('Invalid session');
         }
         return payload;
     }
@@ -230,7 +239,7 @@ export class AuthService {
     verifyRefreshToken(token: string) {
         const payload = verifyToken(token, 'refresh');
         if (!payload) {
-            throw new Error('Invalid session');
+            throw new AuthenticationError('Invalid session');
         }
         return payload.id;
     }

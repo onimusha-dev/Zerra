@@ -10,7 +10,6 @@ import { createUsersRoutes, UsersController } from '@modules/users';
 import { AuthController } from '@modules/auth/auth.controller';
 import { createAuthRoutes } from '@modules/auth/auth.routes';
 import { AuthService } from '@modules/auth/auth.service';
-import { AuthRepository } from '@modules/auth/auth.repository';
 import { ConfigService } from '@platform/config';
 import { SmtpService } from '@shared/smtp/smtp.service';
 import { HTTPException } from 'hono/http-exception';
@@ -125,13 +124,7 @@ export class Application {
                     statusCode: err.statusCode,
                     code: err.code,
                 });
-                return ctx.json(
-                    {
-                        success: false,
-                        ...err.toJSON(),
-                    },
-                    err.statusCode as any,
-                );
+                return ctx.json(err.toJSON(), err.statusCode as any);
             }
 
             // Handle all other internal errors
@@ -145,11 +138,13 @@ export class Application {
             return ctx.json(
                 {
                     success: false,
-                    error: 'Internal Server Error',
                     message: this.config.isProduction
                         ? 'An unexpected error occurred'
                         : err.message,
-                    ...(this.config.isProduction ? {} : { stack: err.stack }),
+                    error: {
+                        code: 'INTERNAL_SERVER_ERROR',
+                        details: this.config.isProduction ? undefined : { stack: err.stack },
+                    },
                 },
                 500,
             );
@@ -176,7 +171,7 @@ export class Application {
         const authMiddleware = new AuthMiddleware(this.config, this.logger, authService);
         mainRouter.route('/health', createHealthRoutes(healthController));
         mainRouter.route('/auth', createAuthRoutes(authController, authMiddleware));
-        mainRouter.route('/user', createUsersRoutes(usersController, authMiddleware));
+        mainRouter.route('/users', createUsersRoutes(usersController, authMiddleware));
 
         this.httpServer.registerRoutes(mainRouter);
         this.logger.debug('All routes configured.');

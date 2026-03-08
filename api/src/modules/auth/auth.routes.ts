@@ -9,21 +9,8 @@ import {
     resetPasswordSchema,
     verifyEmailSchema,
 } from './auth.validator';
-import { zValidator } from '@hono/zod-validator';
+import { validate } from '@shared/utils';
 
-/**
- *
- * @param controller AuthController
- * @returns Hono<AppEnv>
- *
- *  @POST /login         -> liveness
- *  @POST /register   -> readiness
- *  @POST /logout -> dependency checks
- *  @POST /forgot-password -> dependency checks
- *  @POST /reset-password -> dependency checks
- *  @POST /verify-email -> dependency checks
- *
- */
 export function createAuthRoutes(
     controller: AuthController,
     authMiddleware: AuthMiddleware,
@@ -32,24 +19,20 @@ export function createAuthRoutes(
     const middleware = authMiddleware.validateUserSession;
 
     router.use('/logout', middleware);
-    router.post('/register', zValidator('json', registerSchema), controller.register);
-    router.post('/login', zValidator('json', loginSchema), controller.login);
+    router.post('/register', validate('json', registerSchema), controller.register);
+    router.post('/login', validate('json', loginSchema), controller.login);
     router.post('/logout', controller.logout);
 
     router.post(
         '/forgot-password',
-        zValidator('json', forgotPasswordSchema),
+        validate('json', forgotPasswordSchema),
         controller.forgotPassword,
     );
-    router.post(
-        '/reset-password',
-        zValidator('json', resetPasswordSchema),
-        controller.resetPassword,
-    );
+    router.post('/reset-password', validate('json', resetPasswordSchema), controller.resetPassword);
 
     router.post('/refresh-token', controller.rotateTokens);
 
-    router.post('/verify-email', zValidator('json', verifyEmailSchema), controller.verifyEmail);
+    router.post('/verify-email', validate('json', verifyEmailSchema), controller.verifyEmail);
 
     return router;
 }
