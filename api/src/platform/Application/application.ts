@@ -21,8 +21,8 @@ import { UsersService } from '@modules/users/users.service';
 import { PostController, PostService, PostRepository, createPostRoutes } from '@modules/post';
 import {
     ArticleController,
-    ArticleService,
     ArticleRepository,
+    ArticleService,
     createArticleRoutes,
 } from '@modules/article';
 
