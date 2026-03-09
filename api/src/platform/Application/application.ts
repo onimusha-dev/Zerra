@@ -19,6 +19,12 @@ import { UserRepository } from '@modules/users/users.repository';
 import { AppEnv } from '@platform/http/types';
 import { UsersService } from '@modules/users/users.service';
 import { PostController, PostService, PostRepository, createPostRoutes } from '@modules/post';
+import {
+    ArticleController,
+    ArticleService,
+    ArticleRepository,
+    createArticleRoutes,
+} from '@modules/article';
 
 export class Application {
     private static instance: Application | null = null;
@@ -173,11 +179,16 @@ export class Application {
         const postService = new PostService(postRepository, userService, this.logger);
         const postController = new PostController(postService);
 
+        const articleRepository = new ArticleRepository(this.database);
+        const articleService = new ArticleService(articleRepository, userService, this.logger);
+        const articleController = new ArticleController(articleService);
+
         const authMiddleware = new AuthMiddleware(this.config, this.logger, authService);
         mainRouter.route('/health', createHealthRoutes(healthController));
         mainRouter.route('/auth', createAuthRoutes(authController, authMiddleware));
         mainRouter.route('/users', createUsersRoutes(usersController, authMiddleware));
         mainRouter.route('/posts', createPostRoutes(postController, authMiddleware));
+        mainRouter.route('/articles', createArticleRoutes(articleController, authMiddleware));
 
         this.httpServer.registerRoutes(mainRouter);
         this.logger.debug('All routes configured.');
