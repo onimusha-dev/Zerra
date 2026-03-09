@@ -15,7 +15,6 @@ export class UsersController {
     constructor(
         private readonly userService: UsersService,
         private readonly cache: CacheService,
-        private readonly logger: LoggerService,
     ) {}
 
     getUser = async (c: JSONContext<any>) => {
