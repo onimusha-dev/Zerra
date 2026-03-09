@@ -19,12 +19,7 @@ import { UserRepository } from '@modules/users/users.repository';
 import { AppEnv } from '@platform/http/types';
 import { UsersService } from '@modules/users/users.service';
 import { PostController, PostService, PostRepository, createPostRoutes } from '@modules/post';
-import {
-    ArticleController,
-    ArticleService,
-    ArticleRepository,
-    createArticleRoutes,
-} from '@modules/article';
+import { PostController, PostService, PostRepository, createPostRoutes } from '@modules/posts';
 
 export class Application {
     private static instance: Application | null = null;
