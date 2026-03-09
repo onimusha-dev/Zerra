@@ -18,7 +18,7 @@ import { AuthMiddleware } from '@platform/http/middleware';
 import { UserRepository } from '@modules/users/users.repository';
 import { AppEnv } from '@platform/http/types';
 import { UsersService } from '@modules/users/users.service';
-import { PostController, PostService, PostRepository, createPostRoutes } from '@modules/posts';
+import { PostController, PostService, PostRepository, createPostRoutes } from '@modules/post';
 
 export class Application {
     private static instance: Application | null = null;
