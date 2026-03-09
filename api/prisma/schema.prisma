@@ -33,10 +33,10 @@ model Post {
   content   String     @db.VarChar(500)
   published Boolean    @default(false)
   authorId  Int
+  author    User       @relation(fields: [authorId], references: [id])
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
   comments  Comments[]
-  author    User       @relation(fields: [authorId], references: [id])
 }
 
 model Articles {
