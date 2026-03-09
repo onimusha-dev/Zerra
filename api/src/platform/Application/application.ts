@@ -18,6 +18,7 @@ import { AuthMiddleware } from '@platform/http/middleware';
 import { UserRepository } from '@modules/users/users.repository';
 import { AppEnv } from '@platform/http/types';
 import { UsersService } from '@modules/users/users.service';
+import { PostController, PostService, PostRepository, createPostRoutes } from '@modules/posts';
 
 export class Application {
     private static instance: Application | null = null;
@@ -166,12 +167,17 @@ export class Application {
         );
 
         const userService = new UsersService(userRepository, this.logger);
-        const usersController = new UsersController(userService, this.cache, this.logger);
+        const usersController = new UsersController(userService, this.cache);
+
+        const postRepository = new PostRepository(this.database);
+        const postService = new PostService(postRepository, userService, this.logger);
+        const postController = new PostController(postService);
 
         const authMiddleware = new AuthMiddleware(this.config, this.logger, authService);
         mainRouter.route('/health', createHealthRoutes(healthController));
         mainRouter.route('/auth', createAuthRoutes(authController, authMiddleware));
         mainRouter.route('/users', createUsersRoutes(usersController, authMiddleware));
+        mainRouter.route('/posts', createPostRoutes(postController, authMiddleware));
 
         this.httpServer.registerRoutes(mainRouter);
         this.logger.debug('All routes configured.');

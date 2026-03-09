@@ -1,7 +1,7 @@
 import { LoggerService } from '@platform/logger/logger.service';
 import { UserRepository } from './users.repository';
 import { hashString, verifyHash } from '@shared/utils/auth';
-import { IUpdateUserProfile } from '@shared/types';
+import { IUser, IUpdateUserProfile } from '@shared/types';
 import { AuthenticationError, ConflictError, NotFoundError } from '@shared/json';
 
 /**
@@ -19,21 +19,22 @@ export class UsersService {
         return safeUser;
     }
 
-    async getUserById(id: number) {
+    async getUserById(id: number): Promise<IUser> {
         const user = await this.userRepository.findUserById(id);
         if (!user) {
             throw new NotFoundError('User');
         }
-        return this.stripSensitiveData(user);
+        return this.stripSensitiveData(user) as IUser;
     }
 
-    async getProfile(id: number) {
+    async getProfile(id: number): Promise<IUpdateUserProfile> {
         const user = await this.userRepository.findUserById(id);
         if (!user) {
             throw new NotFoundError('User');
         }
-        const { email, ...safeUser } = this.stripSensitiveData(user);
-        return safeUser;
+        const safeUser = this.stripSensitiveData(user) as IUser;
+        const { email, ...profile } = safeUser;
+        return profile;
     }
 
     async updateProfile(id: number, profile: IUpdateUserProfile) {

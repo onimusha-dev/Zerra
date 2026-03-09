@@ -9,20 +9,21 @@ datasource db {
 
 model User {
   id               Int        @id @default(autoincrement())
-  name             String     @db.VarChar(50)
-  email            String     @unique
-  username         String     @unique @db.VarChar(16)
+  name             String     @db.VarChar(100)
+  email            String     @unique @db.VarChar(255)
+  username         String     @unique @db.VarChar(32)
   bio              String?    @db.VarChar(150)
-  link             String?
+  link             String?    @db.VarChar(2048)
   createdAt        DateTime   @default(now()) @map("created_at")
   updatedAt        DateTime   @updatedAt @map("updated_at")
   settings         Json       @default("{}")
   timezone         String     @default("UTC")
   avatar           String?
-  password         String    @map("password_hash")
+  password         String     @map("password_hash") @db.VarChar(255)
   twoFactorEnabled Boolean    @default(false) @map("two_factor_enabled")
-  refreshToken     String?    @map("refresh_token")
+  refreshToken     String?    @map("refresh_token") @db.VarChar(255)
   isVerified       Boolean    @default(false) @map("is_verified")
+  isUserBanned     Boolean    @default(false) @map("is_user_banned")
   articles         Articles[]
   posts            Post[]
 }
@@ -50,9 +51,10 @@ model Articles {
 }
 
 model Comments {
-  id         Int       @id @default(autoincrement())
-  postId     Int?
-  articlesId Int?
-  articles   Articles? @relation(fields: [articlesId], references: [id])
-  post       Post?     @relation(fields: [postId], references: [id])
+  id             Int       @id @default(autoincrement())
+  postId         Int?
+  articlesId     Int?
+  articles       Articles? @relation(fields: [articlesId], references: [id])
+  post           Post?     @relation(fields: [postId], references: [id])
+  nestedComments Int[]     @default([])
 }
