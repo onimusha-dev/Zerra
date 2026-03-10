@@ -38,4 +38,31 @@ export class AuthMiddleware {
             throw new HTTPException(401, { message: 'Invalid or expired session' });
         }
     };
+
+    optionalUserSession = async (c: Context<AppEnv>, next: Next) => {
+        const authHeader = c.req.header('Authorization');
+        const accessToken = getCookie(c, 'access_token');
+
+        let token: string | undefined;
+
+        if (authHeader?.startsWith('Bearer ')) {
+            token = authHeader.split(' ')[1];
+        } else if (accessToken) {
+            token = accessToken;
+        }
+
+        if (token) {
+            try {
+                const payload = this.authService.verifyAccessToken(token);
+                c.set('user', payload);
+            } catch (error: any) {
+                // Silently fail for optional auth
+                this.logger.warn(
+                    'Optional session validation failed, continuing without user context',
+                );
+            }
+        }
+
+        await next();
+    };
 }

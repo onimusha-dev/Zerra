@@ -9,6 +9,7 @@ export interface IUser {
     bio?: string | null;
     link?: string | null;
     avatar?: string | null;
+    banner?: string | null;
     isVerified: boolean;
     isUserBanned: boolean;
     createdAt: Date;

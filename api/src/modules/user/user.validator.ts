@@ -13,6 +13,7 @@ export const userUpdateSchema = z
         bio: z.string().max(150, 'Bio must be at most 150 characters long'),
         link: z.url('Invalid website URL'),
         avatar: z.url('Avatar URL is invalid'),
+        banner: z.url('Banner URL is invalid'),
         timezone: z.string(),
     })
     .partial();
@@ -45,3 +46,9 @@ export const changeTwoFactorSchema = z.object({
 });
 
 export type ChangeTwoFactorSchema = z.infer<typeof changeTwoFactorSchema>;
+
+export const userIdParamSchema = z.object({
+    id: z.coerce.number().int().positive(),
+});
+
+export type UserIdParamSchema = z.infer<typeof userIdParamSchema>;

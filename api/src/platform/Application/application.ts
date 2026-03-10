@@ -6,7 +6,7 @@ import { Hono } from 'hono';
 import { container, ServiceKeys } from './container';
 import { CacheService } from '@platform/cache';
 import { createRequestLogger } from '@platform/http/middleware/request-logger';
-import { createUsersRoutes, UsersController } from '@modules/users';
+import { createUserRoutes, UserController, UserService } from '@modules/user';
 import { AuthController } from '@modules/auth/auth.controller';
 import { createAuthRoutes } from '@modules/auth/auth.routes';
 import { AuthService } from '@modules/auth/auth.service';
@@ -15,9 +15,7 @@ import { SmtpService } from '@shared/smtp/smtp.service';
 import { HTTPException } from 'hono/http-exception';
 import { AppError } from '@shared/json/apiError';
 import { AuthMiddleware } from '@platform/http/middleware';
-import { UserRepository } from '@modules/users/users.repository';
 import { AppEnv } from '@platform/http/types';
-import { UsersService } from '@modules/users/users.service';
 import { PostController, PostService, PostRepository, createPostRoutes } from '@modules/post';
 import {
     ArticleController,
@@ -25,6 +23,13 @@ import {
     ArticleService,
     createArticleRoutes,
 } from '@modules/article';
+import {
+    CommentController,
+    CommentRepository,
+    CommentService,
+    createCommentRoutes,
+} from '@modules/comment';
+import { UserRepository } from '@modules/user/user.repository';
 
 export class Application {
     private static instance: Application | null = null;
@@ -172,8 +177,8 @@ export class Application {
             this.logger,
         );
 
-        const userService = new UsersService(userRepository, this.logger);
-        const usersController = new UsersController(userService, this.cache);
+        const userService = new UserService(userRepository, this.logger);
+        const userController = new UserController(userService, this.cache);
 
         const postRepository = new PostRepository(this.database);
         const postService = new PostService(postRepository, userService, this.logger);
@@ -183,14 +188,19 @@ export class Application {
         const articleService = new ArticleService(articleRepository, userService, this.logger);
         const articleController = new ArticleController(articleService);
 
+        const commentRepository = new CommentRepository(this.database);
+        const commentService = new CommentService(commentRepository, this.logger);
+        const commentController = new CommentController(commentService);
+
         const authMiddleware = new AuthMiddleware(this.config, this.logger, authService);
         mainRouter.route('/health', createHealthRoutes(healthController));
         mainRouter.route('/auth', createAuthRoutes(authController, authMiddleware));
-        mainRouter.route('/users', createUsersRoutes(usersController, authMiddleware));
+        mainRouter.route('/users', createUserRoutes(userController, authMiddleware));
         mainRouter.route('/posts', createPostRoutes(postController, authMiddleware));
         mainRouter.route('/articles', createArticleRoutes(articleController, authMiddleware));
+        mainRouter.route('/comments', createCommentRoutes(commentController, authMiddleware));
 
         this.httpServer.registerRoutes(mainRouter);
-        this.logger.debug('All routes configured.');
+        this.logger.info('All routes configured.');
     }
 }

@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { AppEnv } from '@platform/http/types';
-import { UsersController } from './users.controller';
+import { UserController } from './user.controller';
 import { AuthMiddleware } from '@platform/http/middleware';
 import {
     changeEmailSchema,
@@ -8,17 +8,18 @@ import {
     changeTwoFactorSchema,
     deleteUserSchema,
     userUpdateSchema,
-} from './users.validator';
+    userIdParamSchema,
+} from './user.validator';
 import { validate } from '@shared/utils';
 
 /**
  *
- * @param controller UsersController
+ * @param controller UserController
  * @returns Hono<AppEnv>
  *
  */
-export function createUsersRoutes(
-    controller: UsersController,
+export function createUserRoutes(
+    controller: UserController,
     authMiddleware: AuthMiddleware,
 ): Hono<AppEnv> {
     const router = new Hono<AppEnv>();
@@ -49,6 +50,21 @@ export function createUsersRoutes(
         validate('json', changeTwoFactorSchema),
         controller.changeTwoFactorAuthentication,
     );
+
+    router.post(
+        '/follow/:id',
+        middleware,
+        validate('param', userIdParamSchema),
+        controller.followUser,
+    );
+    router.post(
+        '/unfollow/:id',
+        middleware,
+        validate('param', userIdParamSchema),
+        controller.unfollowUser,
+    );
+    router.get('/followers/:id?', middleware, controller.getFollowers);
+    router.get('/following/:id?', middleware, controller.getFollowing);
 
     return router;
 }

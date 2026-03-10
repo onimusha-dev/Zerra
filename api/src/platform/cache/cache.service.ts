@@ -35,7 +35,7 @@ export class CacheService {
 
         this.client.on('connect', () => {
             this.ready = true;
-            this.logger.debug('Redis connected');
+            this.logger.info('Redis connected');
         });
 
         this.client.on('error', (err) => {

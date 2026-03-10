@@ -1,14 +1,14 @@
 import { LoggerService } from '@platform/logger/logger.service';
-import { UserRepository } from './users.repository';
+import { UserRepository } from './user.repository';
 import { hashString, verifyHash } from '@shared/utils/auth';
 import { IUser, IUpdateUserProfile } from '@shared/types';
-import { AuthenticationError, ConflictError, NotFoundError } from '@shared/json';
+import { AuthenticationError, ConflictError, NotFoundError, ForbiddenError } from '@shared/json';
 
 /**
  * @TODO - remove sensetive info form the returned object
  *       - set proper returned type
  */
-export class UsersService {
+export class UserService {
     constructor(
         private readonly userRepository: UserRepository,
         private readonly logger: LoggerService,
@@ -27,14 +27,29 @@ export class UsersService {
         return this.stripSensitiveData(user) as IUser;
     }
 
-    async getProfile(id: number): Promise<IUpdateUserProfile> {
+    async getProfile(id: number, viewerId?: number): Promise<any> {
         const user = await this.userRepository.findUserById(id);
         if (!user) {
             throw new NotFoundError('User');
         }
+
+        const [followersCount, followingCount] = await Promise.all([
+            this.userRepository.getFollowersCount(id),
+            this.userRepository.getFollowingCount(id),
+        ]);
+
+        let isFollowing = false;
+        if (viewerId && viewerId !== id) {
+            isFollowing = await this.userRepository.isFollowing(viewerId, id);
+        }
+
         const safeUser = this.stripSensitiveData(user) as IUser;
-        const { email, ...profile } = safeUser;
-        return profile;
+        return {
+            ...safeUser,
+            followersCount,
+            followingCount,
+            isFollowing,
+        };
     }
 
     async updateProfile(id: number, profile: IUpdateUserProfile) {
@@ -114,5 +129,50 @@ export class UsersService {
         const deletedUser = await this.userRepository.deleteUser(id);
         this.logger.info('User deleted successfully', { userId: id });
         return this.stripSensitiveData(deletedUser);
+    }
+
+    async followUser(followerId: number, followingId: number) {
+        if (followerId === followingId) {
+            throw new ConflictError('You cannot follow yourself');
+        }
+
+        const followingUser = await this.userRepository.findUserById(followingId);
+        if (!followingUser) {
+            throw new NotFoundError('User to follow');
+        }
+
+        if (followingUser.isUserBanned) {
+            throw new ForbiddenError('This user is banned');
+        }
+
+        const isAlreadyFollowing = await this.userRepository.isFollowing(followerId, followingId);
+        if (isAlreadyFollowing) {
+            throw new ConflictError('You are already following this user');
+        }
+
+        await this.userRepository.followUser(followerId, followingId);
+        this.logger.info('User followed successfully', { followerId, followingId });
+        return { success: true };
+    }
+
+    async unfollowUser(followerId: number, followingId: number) {
+        const isFollowing = await this.userRepository.isFollowing(followerId, followingId);
+        if (!isFollowing) {
+            throw new NotFoundError('Follow relationship not found');
+        }
+
+        await this.userRepository.unfollowUser(followerId, followingId);
+        this.logger.info('User unfollowed successfully', { followerId, followingId });
+        return { success: true };
+    }
+
+    async getFollowers(userId: number) {
+        const followers = await this.userRepository.getFollowers(userId);
+        return followers.map((f) => f.follower);
+    }
+
+    async getFollowing(userId: number) {
+        const following = await this.userRepository.getFollowing(userId);
+        return following.map((f) => f.following);
     }
 }
