@@ -17,11 +17,14 @@ export const registerSchema = z
             .max(24, 'Confirm Password must be at most 24 characters long'),
         username: z
             .string()
-            .min(5, 'Username must be at least 5 characters long')
-            .max(16, 'Username must be at most 16 characters long'),
+            .regex(
+                /^[a-z0-9_]{5,16}$/i,
+                'Username must be 5-16 characters long and contain only letters, numbers, and underscores',
+            ),
         bio: z.string().max(150, 'Bio must be at most 150 characters long').optional(),
         link: z.url('Invalid website URL').optional(),
         avatar: z.url('Avatar URL is invalid').optional(),
+        banner: z.url('Banner URL is invalid').optional(),
         timezone: z.string().optional(),
     })
     .refine((data) => data.password === data.confirmPassword, {
@@ -42,21 +45,27 @@ export const registerSchema = z
 
 export const loginSchema = z
     .object({
-        email: z.email('Invalid email address').optional(),
+        email: z.email('Invalid email address').optional().or(z.literal('')),
         username: z
             .string()
-            .min(5, 'Username must be at least 5 characters long')
-            .max(16, 'Username must be at most 16 characters long')
-            .optional(),
+            .regex(
+                /^[a-z0-9_]{5,16}$/i,
+                'Username must be 5-16 characters long and contain only letters, numbers, and underscores',
+            )
+            .optional()
+            .or(z.literal('')),
         password: z
             .string()
             .min(8, 'Password must be at least 8 characters long')
             .max(24, 'Password must be at most 24 characters long'),
     })
-    .refine((data) => data.email || data.username, {
-        message: 'Email or Username is required',
-        path: ['email', 'username'],
-    })
+    .refine(
+        (data) => (data.email && data.email !== '') || (data.username && data.username !== ''),
+        {
+            message: 'Email or Username is required',
+            path: ['email', 'username'],
+        },
+    )
     .transform(({ email, username, ...rest }) => {
         return {
             email: email?.toLowerCase(),

@@ -1,8 +1,7 @@
-import 'dotenv/config';
-
+import { PrismaClient } from '@/generated/prisma';
 import { LoggerService } from '@platform/logger/logger.service';
-import { PrismaClient } from '../../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import 'dotenv/config';
 
 /**
  * @module DatabaseService

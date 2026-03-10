@@ -1,4 +1,4 @@
-export { ArticleController } from './articles.controller';
-export { ArticleService } from './articles.service';
-export { ArticleRepository } from './articles.repository';
-export { createArticleRoutes } from './articles.routes';
+export { ArticleController } from './article.controller';
+export { ArticleService } from './article.service';
+export { ArticleRepository } from './article.repository';
+export { createArticleRoutes } from './article.routes';

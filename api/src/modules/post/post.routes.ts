@@ -1,13 +1,8 @@
 import { Hono } from 'hono';
 import { AppEnv } from '@platform/http/types';
-import { PostController } from './posts.controller';
+import { PostController } from './post.controller';
 import { AuthMiddleware } from '@platform/http/middleware';
-import {
-    createPostSchema,
-    updatePostSchema,
-    postIdSchema,
-    authorIdSchema,
-} from './posts.validator';
+import { createPostSchema, updatePostSchema, postIdSchema, authorIdSchema } from './post.validator';
 import { validate } from '@shared/utils';
 
 /**
@@ -21,10 +16,16 @@ export function createPostRoutes(
 ): Hono<AppEnv> {
     const router = new Hono<AppEnv>();
     const sessionMiddleware = authMiddleware.validateUserSession;
+    const optionalSession = authMiddleware.optionalUserSession;
 
-    router.get('/', controller.getAllPosts);
-    router.get('/:id', validate('param', postIdSchema), controller.getPost);
-    router.get('/author/:authorId', validate('param', authorIdSchema), controller.getAuthorPosts);
+    router.get('/', optionalSession, controller.getAllPosts);
+    router.get('/:id', optionalSession, validate('param', postIdSchema), controller.getPost);
+    router.get(
+        '/author/:authorId',
+        optionalSession,
+        validate('param', authorIdSchema),
+        controller.getAuthorPosts,
+    );
 
     router.post('/', sessionMiddleware, validate('json', createPostSchema), controller.createPost);
     router.patch(
@@ -39,6 +40,19 @@ export function createPostRoutes(
         sessionMiddleware,
         validate('param', postIdSchema),
         controller.deletePost,
+    );
+
+    router.post(
+        '/:id/like',
+        sessionMiddleware,
+        validate('param', postIdSchema),
+        controller.toggleLike,
+    );
+    router.post(
+        '/:id/bookmark',
+        sessionMiddleware,
+        validate('param', postIdSchema),
+        controller.toggleBookmark,
     );
 
     return router;

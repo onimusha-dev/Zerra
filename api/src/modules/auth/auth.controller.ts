@@ -38,7 +38,7 @@ export class AuthController {
             httpOnly: this.config.httpOnly_cookies,
             secure: this.config.secure_cookies,
             sameSite: 'strict',
-            path: '/auth/refresh-token',
+            path: '/',
             maxAge: this.config.refresh_token_expiry_seconds,
         });
 
@@ -68,7 +68,7 @@ export class AuthController {
             httpOnly: this.config.httpOnly_cookies,
             secure: this.config.secure_cookies,
             sameSite: 'strict',
-            path: '/auth/refresh-token',
+            path: '/',
             maxAge: this.config.refresh_token_expiry_seconds,
         });
 
@@ -94,7 +94,7 @@ export class AuthController {
         const { message } = await this.authService.logout(user.id);
 
         deleteCookie(c, 'access_token', { path: '/' });
-        deleteCookie(c, 'refresh_token', { path: '/auth/refresh-token' });
+        deleteCookie(c, 'refresh_token', { path: '/' });
 
         this.logger.info('Logout successful', { userId: user.id });
         return c.json(ApiResponse.success(null, message), HTTP_STATUS.OK);
@@ -122,7 +122,7 @@ export class AuthController {
             httpOnly: this.config.httpOnly_cookies,
             secure: this.config.secure_cookies,
             sameSite: 'strict',
-            path: '/auth/refresh-token',
+            path: '/',
             maxAge: this.config.refresh_token_expiry_seconds,
         });
 
@@ -163,7 +163,7 @@ export class AuthController {
             httpOnly: this.config.httpOnly_cookies,
             secure: this.config.secure_cookies,
             sameSite: 'strict',
-            path: '/auth/refresh-token',
+            path: '/',
             maxAge: this.config.refresh_token_expiry_seconds,
         });
 
