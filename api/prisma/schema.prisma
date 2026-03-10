@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
@@ -18,43 +18,119 @@ model User {
   updatedAt        DateTime   @updatedAt @map("updated_at")
   settings         Json       @default("{}")
   timezone         String     @default("UTC")
-  avatar           String?
+  avatar           String?    @db.VarChar(2048)
+  banner           String?    @db.VarChar(2048)
   password         String     @map("password_hash") @db.VarChar(255)
   twoFactorEnabled Boolean    @default(false) @map("two_factor_enabled")
   refreshToken     String?    @map("refresh_token") @db.VarChar(255)
   isVerified       Boolean    @default(false) @map("is_verified")
   isUserBanned     Boolean    @default(false) @map("is_user_banned")
-  articles         Articles[]
+  articles         Article[]
   posts            Post[]
+  comments         Comment[]
+  likes            Like[]
+  bookmarks        Bookmark[]
+  searches         Search[]
+  followers        Follow[]   @relation("followers")
+  following        Follow[]   @relation("following")
 }
 
 model Post {
   id        Int        @id @default(autoincrement())
   content   String     @db.VarChar(500)
+  banner    String?    @db.VarChar(2048)
   published Boolean    @default(false)
   authorId  Int
   author    User       @relation(fields: [authorId], references: [id])
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
-  comments  Comments[]
+  comments  Comment[]
+  likes     Like[]
+  bookmarks Bookmark[]
 }
 
-model Articles {
+model Article {
   id             Int        @id @default(autoincrement())
   title          String     @db.VarChar(100)
   body           String
   published      Boolean    @default(true)
   enableComments Boolean    @default(true) @map("enable_comments")
+  banner         String?    @db.VarChar(2048)
   userId         Int?
   user           User?      @relation(fields: [userId], references: [id])
-  comments       Comments[]
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @default(now()) @updatedAt @map("updated_at")
+  comments       Comment[]
+  likes          Like[]
+  bookmarks      Bookmark[]
 }
 
-model Comments {
-  id             Int       @id @default(autoincrement())
+model Comment {
+  id             Int        @id @default(autoincrement())
+  content        String     @db.VarChar(500)
+  authorId       Int
+  author         User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
   postId         Int?
-  articlesId     Int?
-  articles       Articles? @relation(fields: [articlesId], references: [id])
-  post           Post?     @relation(fields: [postId], references: [id])
-  nestedComments Int[]     @default([])
+  articleId      Int?
+  article        Article?   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  post           Post?      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parentId       Int?       @map("parent_id")
+  parent         Comment?   @relation("NestedComments", fields: [parentId], references: [id], onDelete: Cascade)
+  replies        Comment[]  @relation("NestedComments")
+  likes          Like[]
+  bookmarks      Bookmark[]
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+}
+
+model Like {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId     Int?
+  post       Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  articleId  Int?
+  article    Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  commentId  Int?
+  comment    Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, postId])
+  @@unique([userId, articleId])
+  @@unique([userId, commentId])
+}
+
+model Bookmark {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId     Int?
+  post       Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  articleId  Int?
+  article    Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  commentId  Int?
+  comment    Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, postId])
+  @@unique([userId, articleId])
+  @@unique([userId, commentId])
+}
+
+model Search {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  query     String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+}
+
+model Follow {
+  followerId  Int      @map("follower_id")
+  follower    User     @relation("following", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId Int      @map("following_id")
+  following   User     @relation("followers", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@id([followerId, followingId])
 }
