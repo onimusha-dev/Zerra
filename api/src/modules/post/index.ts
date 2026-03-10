@@ -1,4 +1,4 @@
-export { PostController } from './posts.controller';
-export { createPostRoutes } from './posts.routes';
-export { PostService } from './posts.service';
-export { PostRepository } from './posts.repository';
+export { PostController } from './post.controller';
+export { createPostRoutes } from './post.routes';
+export { PostService } from './post.service';
+export { PostRepository } from './post.repository';
