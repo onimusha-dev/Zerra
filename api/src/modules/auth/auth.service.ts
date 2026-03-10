@@ -2,7 +2,7 @@ import { LoggerService } from '@platform/logger/logger.service';
 import { generateAuthTokens, hashString, verifyHash, verifyToken } from '@shared/utils/auth';
 import { CacheService } from '@platform/cache';
 import { SmtpService } from '@shared/smtp/smtp.service';
-import { UserRepository } from '../users/users.repository';
+import { UserRepository } from '../user/user.repository';
 import {
     AuthenticationError,
     ConflictError,
@@ -20,7 +20,7 @@ export class AuthService {
     ) {}
 
     async createUser(body: any): Promise<{ accessToken: string; refreshToken: string }> {
-        const { name, email, password, username, bio, link, avatar, timezone } = body;
+        const { name, email, password, username, bio, link, avatar, banner, timezone } = body;
 
         const isUserExist =
             (await this.userRepository.findUserByEmail(email)) ||
@@ -40,6 +40,7 @@ export class AuthService {
             bio,
             link,
             avatar,
+            banner,
             timezone,
         };
 
