@@ -23,7 +23,7 @@ export default function HealthPage() {
         <div className="flex flex-col min-h-screen">
             <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm px-2 py-8 mb-10 flex items-center justify-between border-b border-border/40">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tighter uppercase italic leading-none">
+                    <h1 className="text-2xl font-bold tracking-tighter uppercase leading-none">
                         Status
                     </h1>
                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mt-1">
@@ -61,7 +61,7 @@ export default function HealthPage() {
                         )}
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-4xl font-black tracking-tight leading-none uppercase italic">
+                        <h2 className="text-4xl font-black tracking-tight leading-none uppercase">
                             {health?.status || 'Analyzing...'}
                         </h2>
                         <p className="text-muted-foreground/60 text-[10px] font-black uppercase tracking-[0.4em]">
@@ -98,7 +98,7 @@ export default function HealthPage() {
                 </div>
 
                 <div className="pt-20 border-t border-border/40 flex flex-col lg:flex-row items-center justify-between gap-8 pb-10 opacity-30">
-                    <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.5em] text-foreground italic">
+                    <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.5em] text-foreground">
                         <Activity className="h-3 w-3" /> Latest Scan: {health?.timestamp || '---'}
                     </div>
                     <p className="text-[10px] text-foreground uppercase tracking-widest font-black max-w-sm text-right leading-relaxed">

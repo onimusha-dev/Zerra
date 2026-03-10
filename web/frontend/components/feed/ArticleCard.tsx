@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { MessageCircle, Heart, Bookmark, Share, BarChart2 } from 'lucide-react';
 import Link from 'next/link';
-import { Article } from './types';
+import { MessageCircle, Heart, Bookmark, Share, BarChart2 } from 'lucide-react';
+import { Article } from '@/types';
 import { ActionButton } from './ActionButton';
 import { useInteractions } from '@/hooks/useInteractions';
 import { FeedItemShell } from './FeedItemShell';
@@ -23,10 +23,7 @@ export function ArticleCard({ article: initialArticle }: { article: Article }) {
             setArticle((prev) => ({
                 ...prev,
                 liked: newLiked,
-                _count: {
-                    ...prev._count,
-                    likes: (prev._count?.likes || 0) + (newLiked ? 1 : -1),
-                },
+                _count: { ...prev._count, likes: (prev._count?.likes || 0) + (newLiked ? 1 : -1) },
             }));
         });
     };
@@ -55,46 +52,46 @@ export function ArticleCard({ article: initialArticle }: { article: Article }) {
                     <ActionButton
                         icon={MessageCircle}
                         count={article._count?.comments || 0}
-                        size={18}
                         color="primary"
                         href={`/articles/${article.id}#comments`}
                     />
                     <ActionButton
                         icon={Heart}
                         count={article._count?.likes || 0}
-                        size={18}
                         color="rose-500"
                         active={liked}
                         onClick={handleLike}
                     />
-                    <ActionButton icon={BarChart2} count={0} size={18} color="sky-500" />
+                    <ActionButton icon={BarChart2} count={0} color="sky-500" />
                     <ActionButton
                         icon={Bookmark}
-                        size={18}
                         color="sky-500"
                         active={bookmarked}
                         onClick={handleBookmark}
                     />
-                    <ActionButton icon={Share} size={18} color="primary" />
+                    <ActionButton icon={Share} color="primary" />
                 </>
             }
         >
-            <Link href={`/articles/${article.id}`} className="block group/content">
-                <div className="border border-border/10 rounded-2xl overflow-hidden hover:border-primary/20 transition-all bg-card/40 backdrop-blur-sm">
+            <Link href={`/articles/${article.id}`} className="block" draggable={false}>
+                <div className="rounded-2xl overflow-hidden border border-primary/30 transition-all duration-200 bg-card/50">
+                    {/* Banner */}
                     {article.banner && (
-                        <div className="overflow-hidden border-b border-border/10">
+                        <div className="overflow-hidden">
                             <img
                                 src={article.banner}
                                 alt={article.title}
-                                className="w-full max-h-96 object-cover group-hover/content:scale-[1.02] transition-transform duration-700"
+                                className="w-full max-h-60 object-cover hover:scale-[1.02] transition-transform duration-700"
                             />
                         </div>
                     )}
-                    <div className="p-5 space-y-3">
-                        <h3 className="text-2xl font-black leading-tight tracking-tighter uppercase italic text-foreground/90 group-hover/content:text-primary transition-colors">
+
+                    {/* Text content */}
+                    <div className={`p-4 ${article.banner ? 'border-t border-border/8' : ''}`}>
+                        <h3 className="text-[15px] font-black tracking-tight leading-snug text-foreground mb-1.5 capitalize">
                             {article.title}
                         </h3>
-                        <p className="text-base text-muted-foreground/80 line-clamp-3 leading-relaxed font-medium">
+                        <p className="text-[13px] text-foreground/60 line-clamp-2 leading-relaxed">
                             {article.body}
                         </p>
                     </div>

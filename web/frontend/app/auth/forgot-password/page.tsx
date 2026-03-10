@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
                     <CheckCircle2 className="h-8 w-8 text-background" />
                 </div>
                 <div className="space-y-2">
-                    <h2 className="text-xl font-bold tracking-tight uppercase italic leading-none">
+                    <h2 className="text-xl font-bold tracking-tight uppercase leading-none">
                         Signal Emitted
                     </h2>
                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center space-y-2">
-                <h2 className="text-xl font-bold tracking-tight uppercase italic leading-none">
+                <h2 className="text-xl font-bold tracking-tight uppercase leading-none">
                     Recover Access
                 </h2>
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
@@ -111,7 +111,7 @@ export default function ForgotPasswordPage() {
                         type="email"
                         disabled={isLoading}
                         required
-                        className="h-12 rounded-sm bg-muted/30 border-border/40 px-4 font-bold text-xs focus-visible:ring-0 italic"
+                        className="h-12 rounded-sm bg-muted/30 border-border/40 px-4 font-bold text-xs focus-visible:ring-0"
                     />
                 </div>
 

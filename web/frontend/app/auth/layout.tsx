@@ -9,7 +9,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                     <div className="h-14 w-14 bg-foreground rounded-sm flex items-center justify-center mb-6">
                         <Zap className="h-8 w-8 text-background fill-current" />
                     </div>
-                    <h1 className="text-4xl font-bold tracking-tighter uppercase italic leading-none">
+                    <h1 className="text-4xl font-bold tracking-tighter uppercase leading-none">
                         Zerra
                     </h1>
                     <p className="text-muted-foreground/40 font-black uppercase tracking-[0.4em] text-[10px] mt-2">
@@ -20,7 +20,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                 <div className="minimal-card p-10 border-border/60">{children}</div>
 
                 <div className="text-center opacity-10">
-                    <p className="text-[10px] font-black tracking-[0.5em] uppercase italic">
+                    <p className="text-[10px] font-black tracking-[0.5em] uppercase">
                         System Version Alpha-1.0
                     </p>
                 </div>

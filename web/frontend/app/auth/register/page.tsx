@@ -68,7 +68,7 @@ export default function RegisterPage() {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center space-y-2">
-                <h2 className="text-xl font-bold tracking-tight uppercase italic leading-none">
+                <h2 className="text-xl font-bold tracking-tight uppercase leading-none">
                     Node Initial
                 </h2>
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
@@ -103,7 +103,7 @@ export default function RegisterPage() {
                                 placeholder="Name"
                                 disabled={isLoading}
                                 required
-                                className="h-10 rounded-sm bg-muted/30 border-border/40 px-3 font-bold text-xs focus-visible:ring-0 italic"
+                                className="h-10 rounded-sm bg-muted/30 border-border/40 px-3 font-bold text-xs focus-visible:ring-0"
                             />
                         </div>
                         <div className="space-y-2">
@@ -119,7 +119,7 @@ export default function RegisterPage() {
                                 placeholder="Handle"
                                 disabled={isLoading}
                                 required
-                                className="h-10 rounded-sm bg-muted/30 border-border/40 px-3 font-bold text-xs focus-visible:ring-0 italic"
+                                className="h-10 rounded-sm bg-muted/30 border-border/40 px-3 font-bold text-xs focus-visible:ring-0"
                             />
                         </div>
                     </div>
@@ -138,7 +138,7 @@ export default function RegisterPage() {
                             placeholder="Email"
                             disabled={isLoading}
                             required
-                            className="h-10 rounded-sm bg-muted/30 border-border/40 px-3 font-bold text-xs focus-visible:ring-0 italic"
+                            className="h-10 rounded-sm bg-muted/30 border-border/40 px-3 font-bold text-xs focus-visible:ring-0"
                         />
                     </div>
 

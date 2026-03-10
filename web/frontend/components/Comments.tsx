@@ -30,7 +30,7 @@ export function CommentList({ postId, articleId }: CommentsProps) {
             <div className="space-y-4">
                 {comments.length === 0 ? (
                     <div className="text-center py-12 opacity-10">
-                        <p className="text-[9px] font-bold uppercase tracking-[0.5em] italic">
+                        <p className="text-[9px] font-bold uppercase tracking-[0.5em]">
                             No Echoes Recorded
                         </p>
                     </div>

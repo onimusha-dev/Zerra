@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fetchApi } from '@/lib/api';
-import { FeedItemType } from '@/components/FeedItem';
+import { FeedItem as FeedItemType } from '@/types';
 import { useUser } from './useUser';
 
 export interface UserProfile {
@@ -15,6 +15,9 @@ export interface UserProfile {
     banner?: string;
     timezone?: string;
     createdAt?: string;
+    followersCount?: number;
+    followingCount?: number;
+    isFollowing?: boolean;
 }
 
 export function useProfile(username: string | null) {
@@ -32,7 +35,8 @@ export function useProfile(username: string | null) {
     async function fetchProfileAndData() {
         setIsLoading(true);
         try {
-            const endpoint = username ? `/api/users/profile/${username}` : '/api/users/me';
+            const endpoint = username ? `/api/users/profile/username/${username}` : '/api/users/me';
+
             const profileRes = await fetchApi(endpoint);
 
             if (!profileRes.ok) {

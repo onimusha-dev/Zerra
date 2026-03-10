@@ -25,7 +25,7 @@ export function ProfileHeader({ name, transmissionCount, isMe }: ProfileHeaderPr
                 </Button>
                 <div>
                     <div className="flex items-center gap-2">
-                        <h1 className="text-xl font-bold tracking-tighter uppercase italic leading-none">
+                        <h1 className="text-xl font-bold tracking-tighter uppercase leading-none">
                             {name}
                         </h1>
                         <Verified className="h-4 w-4" />

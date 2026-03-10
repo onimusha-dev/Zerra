@@ -16,7 +16,7 @@ export default function EditProfilePage() {
         return (
             <div className="flex flex-col items-center justify-center p-20 gap-4 opacity-30">
                 <Loader2 className="h-8 w-8 animate-spin text-foreground" />
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] italic leading-none">
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] leading-none">
                     Accessing Identity
                 </span>
             </div>
@@ -45,7 +45,7 @@ export default function EditProfilePage() {
                         <ArrowLeft className="h-4 w-4" />
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tighter uppercase italic leading-none">
+                        <h1 className="text-2xl font-bold tracking-tighter uppercase leading-none">
                             Identity
                         </h1>
                         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mt-1">
@@ -68,7 +68,7 @@ export default function EditProfilePage() {
                 </Button>
             </div>
 
-            <div className="max-w-4xl mx-auto w-full pb-32 px-2">
+            <div className="w-full pb-32 px-2">
                 <ProfileForm
                     profile={profile}
                     error={error}

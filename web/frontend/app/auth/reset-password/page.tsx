@@ -58,7 +58,7 @@ function ResetPasswordInner() {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center space-y-2">
-                <h2 className="text-xl font-bold tracking-tight uppercase italic leading-none">
+                <h2 className="text-xl font-bold tracking-tight uppercase leading-none">
                     Re-key Node
                 </h2>
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">

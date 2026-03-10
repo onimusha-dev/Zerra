@@ -16,7 +16,7 @@ export function PostViewHeader() {
                     <ArrowLeft className="h-5 w-5" />
                 </button>
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-black tracking-tighter uppercase italic leading-none text-foreground">
+                    <h1 className="text-2xl md:text-3xl font-black tracking-tighter uppercase leading-none text-foreground">
                         Transmission
                     </h1>
                     <p className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.4em] text-primary mt-2">

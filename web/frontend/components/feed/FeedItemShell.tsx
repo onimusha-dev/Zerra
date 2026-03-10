@@ -5,13 +5,10 @@ import Link from 'next/link';
 import { Verified } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn, formatDate } from '@/lib/utils';
+import { Author } from '@/types';
 
 interface FeedItemShellProps {
-    author: {
-        name: string;
-        username: string;
-        avatar?: string;
-    };
+    author: Author;
     createdAt: string;
     children: React.ReactNode;
     footer?: React.ReactNode;
@@ -28,42 +25,47 @@ export function FeedItemShell({
     return (
         <div
             className={cn(
-                'flex w-full items-start gap-4 py-6 transition-all duration-500 animate-in fade-in slide-in-from-bottom-2',
+                'flex w-full items-start gap-3.5 px-4 py-4 hover:bg-muted/10 transition-colors duration-150 border-b border-border/8',
                 className,
             )}
         >
-            <div className="shrink-0">
+            {/* Avatar column */}
+            <div className="shrink-0 pt-0.5">
                 <Link href={`/profile?username=${author.username}`}>
-                    <Avatar className="h-12 w-12 rounded-full border border-border/10 ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
+                    <Avatar className="h-10 w-10 rounded-2xl border border-border/15 hover:border-primary/30 transition-colors">
                         <AvatarImage src={author.avatar} className="object-cover" />
-                        <AvatarFallback className="font-bold italic bg-muted text-foreground">
+                        <AvatarFallback className="font-black bg-primary/10 text-primary text-sm">
                             {(author.name || 'U')[0]}
                         </AvatarFallback>
                     </Avatar>
                 </Link>
             </div>
 
+            {/* Content column */}
             <div className="flex flex-col w-full min-w-0">
-                <div className="flex flex-wrap gap-2 items-center text-sm">
+                {/* Header */}
+                <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0 mb-1.5">
                     <Link
                         href={`/profile?username=${author.username}`}
-                        className="font-bold hover:text-primary transition-colors truncate"
+                        className="text-sm font-black tracking-tight text-foreground hover:text-primary transition-colors"
                     >
                         {author.name}
                     </Link>
-                    <Verified className="h-3.5 w-3.5 text-primary fill-current" />
-                    <span className="opacity-40 truncate">@{author.username}</span>
-                    <span className="opacity-20">·</span>
-                    <span className="opacity-40 whitespace-nowrap">{formatDate(createdAt)}</span>
+                    <Verified className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <span className="text-[12px] text-muted-foreground/50 font-medium">
+                        @{author.username}
+                    </span>
+                    <span className="text-muted-foreground/25 text-xs">·</span>
+                    <span className="text-[12px] text-muted-foreground/50 font-medium whitespace-nowrap">
+                        {formatDate(createdAt)}
+                    </span>
                 </div>
 
-                <div className="mt-2 min-w-0">{children}</div>
+                {/* Body */}
+                <div className="min-w-0">{children}</div>
 
-                {footer && (
-                    <div className="mt-4 flex items-center justify-between w-full pr-2">
-                        {footer}
-                    </div>
-                )}
+                {/* Footer actions */}
+                {footer && <div className="mt-3 flex items-center gap-1 -ml-2">{footer}</div>}
             </div>
         </div>
     );

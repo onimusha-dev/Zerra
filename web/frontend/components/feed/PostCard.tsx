@@ -1,15 +1,18 @@
 'use client';
 
 import React from 'react';
-import { MessageCircle, Heart, Bookmark, Share, BarChart2 } from 'lucide-react';
 import Link from 'next/link';
-import { Post } from './types';
+import { MessageCircle, Heart, Bookmark, Share, BarChart2 } from 'lucide-react';
+import { Post } from '@/types';
 import { ActionButton } from './ActionButton';
 import { useInteractions } from '@/hooks/useInteractions';
 import { FeedItemShell } from './FeedItemShell';
 
+const PREVIEW_LENGTH = 300;
+
 export function PostCard({ post: initialPost }: { post: Post }) {
     const [post, setPost] = React.useState(initialPost);
+    const [expanded, setExpanded] = React.useState(false);
     const { liked, bookmarked, toggleLike, toggleBookmark } = useInteractions(
         post.id,
         'post',
@@ -17,15 +20,16 @@ export function PostCard({ post: initialPost }: { post: Post }) {
         post.bookmarked,
     );
 
+    const isLong = post.content.length > PREVIEW_LENGTH;
+    const displayContent =
+        isLong && !expanded ? post.content.slice(0, PREVIEW_LENGTH).trimEnd() + '…' : post.content;
+
     const handleLike = (e: React.MouseEvent) => {
         toggleLike(e, (newLiked) => {
             setPost((prev) => ({
                 ...prev,
                 liked: newLiked,
-                _count: {
-                    ...prev._count,
-                    likes: (prev._count?.likes || 0) + (newLiked ? 1 : -1),
-                },
+                _count: { ...prev._count, likes: (prev._count?.likes || 0) + (newLiked ? 1 : -1) },
             }));
         });
     };
@@ -54,45 +58,58 @@ export function PostCard({ post: initialPost }: { post: Post }) {
                     <ActionButton
                         icon={MessageCircle}
                         count={post._count?.comments || 0}
-                        size={18}
                         color="primary"
                         href={`/posts/${post.id}`}
                     />
                     <ActionButton
                         icon={Heart}
                         count={post._count?.likes || 0}
-                        size={18}
                         color="rose-500"
                         active={liked}
                         onClick={handleLike}
                     />
-                    <ActionButton icon={BarChart2} count={0} size={18} color="sky-500" />
+                    <ActionButton icon={BarChart2} count={0} color="sky-500" />
                     <ActionButton
                         icon={Bookmark}
-                        size={18}
                         color="sky-500"
                         active={bookmarked}
                         onClick={handleBookmark}
                     />
-                    <ActionButton icon={Share} size={18} color="primary" />
+                    <ActionButton icon={Share} color="primary" />
                 </>
             }
         >
-            <Link href={`/posts/${post.id}`} className="block">
-                <p className="text-base sm:text-lg leading-relaxed text-foreground/90 whitespace-pre-wrap font-medium">
-                    {post.content}
-                </p>
+            <div className="space-y-3" draggable={false}>
+                <Link href={`/posts/${post.id}`} className="block">
+                    <p className="text-[15px] leading-[1.7] text-foreground/95 whitespace-pre-wrap">
+                        {displayContent}
+                    </p>
+                </Link>
+
+                {isLong && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setExpanded(!expanded);
+                        }}
+                        className="text-[11px] font-black uppercase tracking-[0.15em] text-primary hover:opacity-70 transition-opacity"
+                    >
+                        {expanded ? '↑ Show less' : '↓ Read more'}
+                    </button>
+                )}
 
                 {(post.media || post.banner) && (
-                    <div className="border border-border/10 rounded-2xl overflow-hidden mt-4 group/media hover:border-primary/20 transition-all bg-card/20">
-                        <img
-                            src={post.media || post.banner}
-                            alt="transmission media"
-                            className="w-full h-auto max-h-[512px] object-cover group-hover:scale-[1.01] transition-transform duration-500"
-                        />
-                    </div>
+                    <Link href={`/posts/${post.id}`} className="block mt-1">
+                        <div className="rounded-2xl overflow-hidden border border-border/15 hover:border-primary/25 transition-colors">
+                            <img
+                                src={post.media || post.banner}
+                                alt="media"
+                                className="w-full max-h-[420px] object-cover hover:scale-[1.01] transition-transform duration-700"
+                            />
+                        </div>
+                    </Link>
                 )}
-            </Link>
+            </div>
         </FeedItemShell>
     );
 }

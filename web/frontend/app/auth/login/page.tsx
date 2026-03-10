@@ -59,7 +59,7 @@ export default function LoginPage() {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center space-y-2">
-                <h2 className="text-xl font-bold tracking-tight uppercase italic leading-none">
+                <h2 className="text-xl font-bold tracking-tight uppercase leading-none">
                     Access Node
                 </h2>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-primary/40">
@@ -96,7 +96,7 @@ export default function LoginPage() {
                             autoComplete="username"
                             required
                             disabled={isLoading}
-                            className="h-12 rounded-none bg-muted/10 border-border/10 px-4 font-bold tracking-tight focus-visible:ring-1 focus-visible:ring-primary/20 placeholder:text-muted-foreground/20 italic transition-all"
+                            className="h-12 rounded-none bg-muted/10 border-border/10 px-4 font-bold tracking-tight focus-visible:ring-1 focus-visible:ring-primary/20 placeholder:text-muted-foreground/20 transition-all"
                         />
                     </div>
                     <div className="space-y-2">
@@ -109,7 +109,7 @@ export default function LoginPage() {
                             </Label>
                             <Link
                                 href="/auth/forgot-password"
-                                className="text-[10px] font-bold uppercase tracking-widest text-primary/40 hover:text-primary transition-colors italic"
+                                className="text-[10px] font-bold uppercase tracking-widest text-primary/40 hover:text-primary transition-colors"
                             >
                                 Lost Access?
                             </Link>
@@ -143,7 +143,7 @@ export default function LoginPage() {
                 <div className="text-center pt-2">
                     <Link
                         href="/auth/register"
-                        className="text-[10px] font-bold uppercase tracking-widest text-primary/40 hover:text-primary transition-colors italic"
+                        className="text-[10px] font-bold uppercase tracking-widest text-primary/40 hover:text-primary transition-colors"
                     >
                         Request New Node Initial
                     </Link>

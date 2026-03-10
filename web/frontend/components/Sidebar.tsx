@@ -3,39 +3,43 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Newspaper, User, Terminal, Zap, Settings } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Home, Newspaper, Bookmark, Settings, Zap } from 'lucide-react';
 import { useUser } from '@/hooks/useUser';
 import { SidebarItem } from './layout/SidebarItem';
 import { SidebarUser } from './layout/SidebarUser';
 
+const NAV_ITEMS = [
+    { name: 'Home', path: '/', icon: Home },
+    { name: 'Journal', path: '/articles', icon: Newspaper },
+    { name: 'Bookmarks', path: '/bookmarks', icon: Bookmark },
+    { name: 'Settings', path: '/settings', icon: Settings },
+] as const;
+
 export function Sidebar() {
     const pathname = usePathname();
-    const { user, isLoading: loading } = useUser();
-
-    const menuItems = [
-        { name: 'Home', path: '/', icon: Home },
-        { name: 'Journal', path: '/articles', icon: Newspaper },
-        { name: 'Identity', path: '/profile', icon: User },
-        { name: 'Status', path: '/health', icon: Terminal },
-        { name: 'Settings', path: '/settings', icon: Settings },
-    ];
+    const { user, isLoading } = useUser();
 
     return (
-        <div className="hidden md:flex flex-col h-full py-10 justify-between border-r border-border/10 bg-background/60 backdrop-blur-2xl transition-all duration-500">
-            <div className="space-y-12 flex flex-col items-center xl:items-start px-4 xl:px-8">
+        <aside className="hidden md:flex flex-col sticky top-0 h-screen py-8 justify-between bg-background w-20 lg:w-60 xl:w-68 shrink-0 border-r border-border/5">
+            {/* Top: Logo + Nav */}
+            <div className="flex flex-col items-center lg:items-start gap-8 px-3 lg:px-5">
+                {/* Logo */}
                 <Link
                     href="/"
-                    className="flex items-center justify-center xl:justify-start gap-4 hover:opacity-80 transition-opacity"
+                    className="flex items-center justify-center lg:justify-start gap-3 px-1 hover:opacity-80 transition-opacity"
                 >
-                    <Zap className="h-10 w-10 text-primary fill-current filter drop-shadow-[0_0_15px_rgba(var(--primary),0.6)] shrink-0" />
-                    <span className="hidden xl:inline font-black text-3xl tracking-tighter uppercase italic leading-none text-foreground">
+                    <Zap
+                        className="h-9 w-9 text-primary fill-current shrink-0"
+                        style={{ filter: 'drop-shadow(0 0 12px oklch(0.92 0 0 / 0.4))' }}
+                    />
+                    <span className="hidden lg:inline font-black text-2xl tracking-tighter uppercase leading-none">
                         Zerra
                     </span>
                 </Link>
 
-                <nav className="w-full space-y-4 pt-4">
-                    {menuItems.map((item) => (
+                {/* Navigation */}
+                <nav className="w-full space-y-1">
+                    {NAV_ITEMS.map((item) => (
                         <SidebarItem
                             key={item.path}
                             path={item.path}
@@ -47,23 +51,10 @@ export function Sidebar() {
                 </nav>
             </div>
 
-            <div className="space-y-6 flex flex-col items-center xl:items-stretch px-4 xl:px-8">
-                {user && (
-                    <Button
-                        className="h-12 w-12 xl:w-full xl:h-14 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xl shadow-primary/20 transition-all hover:shadow-primary/40 hover:-translate-y-1 active:scale-95 group overflow-hidden p-0 xl:px-6"
-                        onClick={() => window.dispatchEvent(new CustomEvent('open-new-post'))}
-                    >
-                        <Zap className="h-6 w-6 fill-current shrink-0" />
-                        <span className="hidden xl:inline ml-3 font-bold uppercase tracking-[0.2em] text-[10px]">
-                            Transmit
-                        </span>
-                    </Button>
-                )}
-
-                <div className="pt-8 w-full border-t border-border/10 flex justify-center xl:justify-start">
-                    <SidebarUser user={user} loading={loading} />
-                </div>
+            {/* Bottom: User Identity */}
+            <div className="px-3 lg:px-5 border-t border-border/5 pt-6">
+                <SidebarUser user={user} loading={isLoading} />
             </div>
-        </div>
+        </aside>
     );
 }

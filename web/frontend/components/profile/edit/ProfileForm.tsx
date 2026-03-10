@@ -20,7 +20,7 @@ export function ProfileForm({ profile, error, success, onSubmit }: ProfileFormPr
                 <div className="space-y-8">
                     <div className="flex items-center justify-between border-b border-border/40 pb-6">
                         <div>
-                            <h3 className="text-xl font-bold tracking-tight uppercase italic leading-none">
+                            <h3 className="text-xl font-bold tracking-tight uppercase leading-none">
                                 Persona Parameters
                             </h3>
                             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-2">
@@ -92,7 +92,7 @@ export function ProfileForm({ profile, error, success, onSubmit }: ProfileFormPr
                             id="bio"
                             name="bio"
                             defaultValue={profile.bio}
-                            className="min-h-[150px] rounded-sm bg-muted/30 border-border/40 p-6 text-base font-medium focus-visible:ring-0 resize-none leading-relaxed italic"
+                            className="min-h-[150px] rounded-sm bg-muted/30 border-border/40 p-6 text-base font-medium focus-visible:ring-0 resize-none leading-relaxed"
                             placeholder="Identify your essence..."
                         />
                     </div>
@@ -141,7 +141,7 @@ export function ProfileForm({ profile, error, success, onSubmit }: ProfileFormPr
                             id="timezone"
                             name="timezone"
                             defaultValue={profile.timezone || 'UTC'}
-                            className="flex h-12 w-full rounded-sm bg-muted/30 border border-border/40 px-4 py-1 text-sm shadow-none focus:ring-0 focus-visible:outline-none font-bold italic"
+                            className="flex h-12 w-full rounded-sm bg-muted/30 border border-border/40 px-4 py-1 text-sm shadow-none focus:ring-0 focus-visible:outline-none font-bold"
                         >
                             <option value="UTC">UTC (CORE)</option>
                             <option value="America/New_York">NEW YORK (NE)</option>

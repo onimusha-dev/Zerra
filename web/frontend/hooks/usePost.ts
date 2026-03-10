@@ -7,10 +7,17 @@ export interface Post {
     media?: string;
     banner?: string;
     createdAt: string;
+    liked?: boolean;
+    bookmarked?: boolean;
     author: {
         name: string;
         username: string;
         avatar?: string;
+    };
+    _count?: {
+        likes?: number;
+        comments?: number;
+        bookmarks?: number;
     };
 }
 

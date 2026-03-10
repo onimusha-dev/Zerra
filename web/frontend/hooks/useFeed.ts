@@ -1,22 +1,24 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { fetchApi } from '@/lib/api';
-import { FeedItemType } from '@/components/FeedItem';
-import { useUser } from './useUser';
+import { FeedItem } from '@/types';
 
+/**
+ * Fetches and manages the home feed (posts + articles merged and sorted).
+ * Post creation is handled separately by useCreatePost.
+ */
 export function useFeed() {
-    const [items, setItems] = useState<FeedItemType[]>([]);
+    const [items, setItems] = useState<FeedItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [isPosting, setIsPosting] = useState(false);
-    const [content, setContent] = useState('');
-    const [banner, setBanner] = useState('');
     const [error, setError] = useState<string | null>(null);
-    const { user, isLoading: isUserLoading } = useUser();
 
     useEffect(() => {
         fetchFeed();
     }, []);
 
     async function fetchFeed() {
+        setIsLoading(true);
         try {
             const [postsRes, articlesRes] = await Promise.all([
                 fetchApi('/api/posts/'),
@@ -24,7 +26,7 @@ export function useFeed() {
             ]);
 
             if (!postsRes.ok || !articlesRes.ok) {
-                throw new Error(`Feed sync failed`);
+                throw new Error('Feed sync failed');
             }
 
             const [postsData, articlesData] = await Promise.all([
@@ -32,7 +34,7 @@ export function useFeed() {
                 articlesRes.json(),
             ]);
 
-            const combined: FeedItemType[] = [
+            const combined: FeedItem[] = [
                 ...(postsData.data || []).map((p: any) => ({ ...p, type: 'post' as const })),
                 ...(articlesData.data || []).map((a: any) => ({ ...a, type: 'article' as const })),
             ].sort((a, b) => {
@@ -49,46 +51,10 @@ export function useFeed() {
         }
     }
 
-    async function handleCreatePost() {
-        if (!content.trim()) return;
-        setIsPosting(true);
-        setError(null);
-        try {
-            const res = await fetchApi('/api/posts/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    content,
-                    banner: banner.trim() || undefined,
-                }),
-            });
-
-            const result = await res.json();
-            if (result.success) {
-                setItems([{ ...result.data, author: user, type: 'post' }, ...items]);
-                setContent('');
-                setBanner('');
-            } else {
-                throw new Error(result.message || 'Failed to create post.');
-            }
-        } catch (err: any) {
-            setError(err.message || 'Failed to post.');
-        } finally {
-            setIsPosting(false);
-        }
+    /** Prepend a newly created item to the feed without a full refetch. */
+    function prependItem(item: FeedItem) {
+        setItems((prev) => [item, ...prev]);
     }
 
-    return {
-        items,
-        isLoading,
-        isPosting,
-        content,
-        setContent,
-        banner,
-        setBanner,
-        error,
-        user,
-        handleCreatePost,
-        fetchFeed,
-    };
+    return { items, isLoading, error, fetchFeed, prependItem };
 }

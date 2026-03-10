@@ -13,7 +13,7 @@ export function SecurityProtocols({ twoFactorEnabled }: SecurityProtocolsProps) 
 
     return (
         <div className="mt-16 space-y-8">
-            <h2 className="text-xl font-bold tracking-tighter uppercase italic leading-none px-1">
+            <h2 className="text-xl font-bold tracking-tighter uppercase leading-none px-1">
                 Security Protocols
             </h2>
 
@@ -25,7 +25,7 @@ export function SecurityProtocols({ twoFactorEnabled }: SecurityProtocolsProps) 
                                 <Shield className="h-4 w-4" />
                             </div>
                             <div className="space-y-1">
-                                <p className="text-sm font-bold tracking-tight leading-none italic uppercase">
+                                <p className="text-sm font-bold tracking-tight leading-none uppercase">
                                     Dual-Layer Sync
                                 </p>
                                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-1">
@@ -43,7 +43,7 @@ export function SecurityProtocols({ twoFactorEnabled }: SecurityProtocolsProps) 
                             onClick={() => router.push('/settings')}
                         >
                             <div className="flex flex-col items-start gap-1 text-left">
-                                <span className="font-bold text-[10px] uppercase tracking-widest italic">
+                                <span className="font-bold text-[10px] uppercase tracking-widest">
                                     Secret Rotation
                                 </span>
                                 <span className="text-[8px] text-muted-foreground/40 font-black uppercase tracking-[0.2em]">
@@ -59,7 +59,7 @@ export function SecurityProtocols({ twoFactorEnabled }: SecurityProtocolsProps) 
                             onClick={() => router.push('/settings')}
                         >
                             <div className="flex flex-col items-start gap-1 text-left">
-                                <span className="font-bold text-[10px] uppercase tracking-widest italic text-destructive">
+                                <span className="font-bold text-[10px] uppercase tracking-widest text-destructive">
                                     Deconstruct Node
                                 </span>
                                 <span className="text-[8px] text-destructive/40 font-black uppercase tracking-[0.2em]">

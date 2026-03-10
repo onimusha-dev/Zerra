@@ -71,7 +71,7 @@ function VerifyEmailInner() {
                     <CheckCircle2 className="h-8 w-8 text-background" />
                 </div>
                 <div className="space-y-2">
-                    <h2 className="text-xl font-bold tracking-tight uppercase italic leading-none">
+                    <h2 className="text-xl font-bold tracking-tight uppercase leading-none">
                         Identity Validated
                     </h2>
                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
@@ -91,7 +91,7 @@ function VerifyEmailInner() {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center space-y-2">
-                <h2 className="text-xl font-bold tracking-tight uppercase italic leading-none">
+                <h2 className="text-xl font-bold tracking-tight uppercase leading-none">
                     Validate Identity
                 </h2>
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
@@ -127,7 +127,7 @@ function VerifyEmailInner() {
                             type="email"
                             disabled={isLoading}
                             required
-                            className="h-12 rounded-sm bg-muted/30 border-border/40 px-4 font-bold text-xs focus-visible:ring-0 italic"
+                            className="h-12 rounded-sm bg-muted/30 border-border/40 px-4 font-bold text-xs focus-visible:ring-0"
                         />
                     </div>
                     <div className="space-y-2">
@@ -168,7 +168,7 @@ function VerifyEmailInner() {
                 </Button>
 
                 <div className="text-center pt-2">
-                    <p className="text-[8px] font-black uppercase tracking-[0.5em] text-muted-foreground/20 italic">
+                    <p className="text-[8px] font-black uppercase tracking-[0.5em] text-muted-foreground/20">
                         A waiting signal reception...
                     </p>
                 </div>

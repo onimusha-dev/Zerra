@@ -1,11 +1,12 @@
 import React from 'react';
 import Link from 'next/link';
+import { ElementType } from 'react';
 import { cn } from '@/lib/utils';
 
 interface SidebarItemProps {
     name: string;
     path: string;
-    icon: any;
+    icon: ElementType;
     isActive: boolean;
 }
 
@@ -14,24 +15,24 @@ export function SidebarItem({ name, path, icon: Icon, isActive }: SidebarItemPro
         <Link
             href={path}
             className={cn(
-                'flex items-center justify-center xl:justify-start gap-4 py-3 xl:px-4 transition-all group rounded-2xl',
+                'flex items-center justify-center lg:justify-start gap-4 py-3 lg:px-4 rounded-2xl transition-all duration-200 group',
                 isActive
-                    ? 'text-primary xl:bg-primary/10 shadow-sm'
-                    : 'text-primary/30 hover:text-primary hover:bg-muted/50',
+                    ? 'text-primary bg-primary/8'
+                    : 'text-muted-foreground/40 hover:text-foreground hover:bg-muted/30',
             )}
         >
             <Icon
                 className={cn(
-                    'h-6 w-6 shrink-0 transition-transform group-hover:scale-110 duration-200',
-                    isActive && 'stroke-[2.5px] fill-primary/10',
+                    'h-5 w-5 shrink-0 transition-all duration-200',
+                    isActive ? 'stroke-[2.5]' : 'group-hover:scale-105',
                 )}
             />
             <span
                 className={cn(
-                    'hidden xl:inline text-xs font-bold tracking-[0.15em] transition-all whitespace-nowrap',
+                    'hidden lg:inline text-[11px] font-black tracking-[0.15em] uppercase whitespace-nowrap transition-all',
                     isActive
-                        ? 'text-primary brightness-125'
-                        : 'text-muted-foreground/60 group-hover:text-primary',
+                        ? 'text-primary'
+                        : 'text-muted-foreground/50 group-hover:text-foreground',
                 )}
             >
                 {name}

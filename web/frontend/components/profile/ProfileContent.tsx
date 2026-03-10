@@ -1,9 +1,46 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PostCard, ArticleCard, FeedItemType } from '@/components/FeedItem';
+import { PostCard } from '@/components/feed/PostCard';
+import { ArticleCard } from '@/components/feed/ArticleCard';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { FeedItem } from '@/types';
+import { FileText, MessageCircle, Heart, AlignLeft } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ProfileContentProps {
-    items: FeedItemType[];
+    items: FeedItem[];
+}
+
+function Tab({
+    value,
+    label,
+    count,
+    icon: Icon,
+}: {
+    value: string;
+    label: string;
+    count?: number;
+    icon: any;
+}) {
+    return (
+        <TabsTrigger
+            value={value}
+            className={cn(
+                'relative flex items-center gap-1.5 px-1 pb-3 pt-1 rounded-none bg-transparent border-b-2 border-transparent text-muted-foreground/40',
+                'font-black text-[11px] uppercase tracking-[0.15em]',
+                'hover:text-foreground/60 transition-colors',
+                'data-[state=active]:border-primary data-[state=active]:text-foreground',
+            )}
+        >
+            <Icon className="h-3.5 w-3.5 shrink-0" />
+            {label}
+            {count !== undefined && count > 0 && (
+                <span className="text-[9px] font-black bg-primary/10 text-primary px-1.5 py-0.5 rounded-full leading-none">
+                    {count}
+                </span>
+            )}
+        </TabsTrigger>
+    );
 }
 
 export function ProfileContent({ items }: ProfileContentProps) {
@@ -12,74 +49,58 @@ export function ProfileContent({ items }: ProfileContentProps) {
 
     return (
         <Tabs defaultValue="posts" className="w-full">
-            <TabsList className="w-full bg-transparent border-b-2 border-border/10 h-10 p-0 gap-10 justify-start rounded-none">
-                <TabsTrigger
-                    value="posts"
-                    className="font-medium text-lg rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary bg-transparent pb-2 mt-2"
-                >
-                    Posts
-                </TabsTrigger>
-                <TabsTrigger
-                    value="articles"
-                    className="font-medium text-lg rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary bg-transparent pb-2 mt-2"
-                >
-                    Articles
-                </TabsTrigger>
-                <TabsTrigger
-                    value="comments"
-                    className="font-medium text-lg rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary bg-transparent pb-2 mt-2"
-                >
-                    Echoes
-                </TabsTrigger>
-                <TabsTrigger
-                    value="likes"
-                    className="font-medium text-lg rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary bg-transparent pb-2 mt-2"
-                >
-                    Likes
-                </TabsTrigger>
+            <TabsList className="w-full bg-transparent border-b border-border/10 h-auto p-0 gap-6 justify-start rounded-none">
+                <Tab value="posts" label="Posts" count={posts.length} icon={AlignLeft} />
+                <Tab value="articles" label="Journal" count={articles.length} icon={FileText} />
+                <Tab value="replies" label="Replies" icon={MessageCircle} />
+                <Tab value="likes" label="Likes" icon={Heart} />
             </TabsList>
 
-            <TabsContent value="posts" className="pt-8 space-y-6">
+            <TabsContent value="posts" className="mt-0">
                 {posts.length > 0 ? (
-                    posts.map((post, key) => (
-                        <div key={key} className="border-b">
-                            <PostCard key={post.id} post={post as any} />
+                    posts.map((post, idx) => (
+                        <div
+                            key={post.id ?? idx}
+                            className="animate-in fade-in duration-300"
+                            style={{ animationDelay: `${idx * 25}ms` }}
+                        >
+                            <PostCard post={post as any} />
                         </div>
                     ))
                 ) : (
-                    <EmptyStream label="No posts transmitted from this node." />
+                    <EmptyState
+                        title="No posts yet"
+                        description="This user hasn't posted anything yet."
+                    />
                 )}
             </TabsContent>
 
-            <TabsContent value="articles" className="pt-8 space-y-6">
+            <TabsContent value="articles" className="mt-0">
                 {articles.length > 0 ? (
-                    articles.map((article, key) => (
-                        <div key={key} className="border-b">
-                            <ArticleCard key={article.id} article={article as any} />
+                    articles.map((article, idx) => (
+                        <div
+                            key={article.id ?? idx}
+                            className="animate-in fade-in duration-300"
+                            style={{ animationDelay: `${idx * 25}ms` }}
+                        >
+                            <ArticleCard article={article as any} />
                         </div>
                     ))
                 ) : (
-                    <EmptyStream label="No editorial records found." />
+                    <EmptyState
+                        title="No articles yet"
+                        description="No journal entries published."
+                    />
                 )}
             </TabsContent>
 
-            <TabsContent value="comments" className="pt-8 space-y-6">
-                <EmptyStream label="No signal echoes detected." />
+            <TabsContent value="replies" className="mt-4">
+                <EmptyState title="No replies yet" description="No comment activity found." />
             </TabsContent>
 
-            <TabsContent value="likes" className="pt-8 space-y-6">
-                <EmptyStream label="No liked transmissions archived." />
+            <TabsContent value="likes" className="mt-4">
+                <EmptyState title="No likes yet" description="Liked posts will appear here." />
             </TabsContent>
         </Tabs>
-    );
-}
-
-function EmptyStream({ label }: { label?: string }) {
-    return (
-        <div className="p-20 text-center border border-dashed border-border/10 rounded-none bg-secondary/5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.4em] italic text-muted-foreground/20">
-                {label || 'Transmission Void Detected'}
-            </p>
-        </div>
     );
 }

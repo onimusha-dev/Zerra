@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { ElementType } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SettingsRowProps {
-    icon: any;
+    icon: ElementType;
     label: string;
     description: string;
     onClick?: () => void;
@@ -19,25 +19,25 @@ export function SettingsRow({
     className,
     rightElement,
 }: SettingsRowProps) {
-    const Component = onClick ? 'button' : 'div';
+    const Tag = onClick ? 'button' : 'div';
 
     return (
-        <Component
+        <Tag
             onClick={onClick}
             className={cn(
-                'w-full flex items-center justify-between p-5 border border-border/10 rounded-none hover:border-primary/20 transition-all text-left group interactive-hover bg-secondary/10',
+                'w-full flex items-center justify-between p-4 rounded-2xl border border-border/10 hover:border-primary/20 hover:bg-muted/20 transition-all duration-200 text-left group',
                 className,
             )}
         >
-            <div className="flex items-center gap-5">
-                <div className="h-10 w-10 rounded-none bg-secondary/30 border border-border/10 flex items-center justify-center group-hover:border-primary/30 transition-colors">
-                    <Icon className="h-4 w-4 text-primary/40 group-hover:text-primary transition-colors" />
+            <div className="flex items-center gap-4">
+                <div className="h-9 w-9 rounded-xl bg-muted/40 border border-border/10 flex items-center justify-center group-hover:border-primary/20 transition-colors shrink-0">
+                    <Icon className="h-4 w-4 text-muted-foreground/50 group-hover:text-primary transition-colors" />
                 </div>
                 <div>
-                    <span className="font-bold text-sm tracking-tight italic block uppercase leading-none mb-1.5">
+                    <span className="text-[11px] font-black uppercase tracking-[0.15em] block leading-none">
                         {label}
                     </span>
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/20 group-hover:text-foreground/60 transition-colors">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/30 group-hover:text-muted-foreground/50 transition-colors mt-1 block">
                         {description}
                     </span>
                 </div>
@@ -45,8 +45,8 @@ export function SettingsRow({
             {rightElement
                 ? rightElement
                 : onClick && (
-                      <ChevronRight className="h-3 w-3 text-muted-foreground/20 group-hover:translate-x-1 group-hover:text-primary transition-all" />
+                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/20 group-hover:translate-x-0.5 group-hover:text-primary transition-all" />
                   )}
-        </Component>
+        </Tag>
     );
 }

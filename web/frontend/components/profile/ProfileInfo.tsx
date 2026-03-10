@@ -9,63 +9,66 @@ interface ProfileInfoProps {
     profile: UserProfile;
 }
 
+function Stat({ value, label }: { value: number; label: string }) {
+    return (
+        <button className="flex items-baseline gap-1.5 hover:opacity-70 transition-opacity">
+            <span className="text-lg font-black tracking-tight tabular-nums">
+                {value.toLocaleString()}
+            </span>
+            <span className="text-[11px] font-bold text-muted-foreground/50 uppercase tracking-[0.1em]">
+                {label}
+            </span>
+        </button>
+    );
+}
+
 export function ProfileInfo({ profile }: ProfileInfoProps) {
     return (
-        <div className="space-y-6 mt-8">
-            <div className="space-y-1">
-                <h1 className="text-4xl font-black tracking-tighter uppercase italic leading-none">
-                    {profile.name}
-                </h1>
-                <p className="text-sm font-bold tracking-[0.2em] text-muted-foreground/40 uppercase">
+        <div className="mt-4 pb-5 border-b border-border/10 space-y-3">
+            {/* Name + handle */}
+            <div>
+                <h1 className="text-2xl font-black tracking-tight leading-none">{profile.name}</h1>
+                <p className="text-[12px] font-bold text-muted-foreground/50 mt-1 tracking-wide">
                     @{profile.username}
                 </p>
             </div>
 
-            <div className="max-w-2xl">
-                <p className="text-lg leading-relaxed font-medium text-foreground/80 italic">
-                    {profile.bio || 'No biography signal transmitted from this node.'}
-                </p>
-            </div>
+            {/* Bio */}
+            <p className="text-[14px] leading-relaxed text-foreground/80 max-w-sm">
+                {profile.bio || <span className="text-muted-foreground/35">No bio yet.</span>}
+            </p>
 
-            <div className="flex flex-wrap items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+            {/* Meta row */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
                 {profile.location && (
-                    <div className="flex items-center gap-2">
-                        <MapPin className="h-3.5 w-3.5 text-primary/40" />
-                        <span>{profile.location}</span>
-                    </div>
+                    <span className="flex items-center gap-1 text-[12px] text-muted-foreground/55 font-medium">
+                        <MapPin className="h-3 w-3 text-primary/50" />
+                        {profile.location}
+                    </span>
                 )}
                 {profile.link && (
-                    <div className="flex items-center gap-2">
-                        <LinkIcon className="h-3.5 w-3.5 text-primary/40" />
-                        <a
-                            href={profile.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline transition-all"
-                        >
-                            {profile.link.replace(/^https?:\/\//, '')}
-                        </a>
-                    </div>
+                    <a
+                        href={profile.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-[12px] text-primary font-medium hover:underline hover:opacity-80 transition-opacity"
+                    >
+                        <LinkIcon className="h-3 w-3" />
+                        {profile.link.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                    </a>
                 )}
-                <div className="flex items-center gap-2">
-                    <Calendar className="h-3.5 w-3.5 text-primary/40" />
-                    <span>Synchronized {formatDate(profile.createdAt!)}</span>
-                </div>
+                {profile.createdAt && (
+                    <span className="flex items-center gap-1 text-[12px] text-muted-foreground/45 font-medium">
+                        <Calendar className="h-3 w-3" />
+                        Joined {formatDate(profile.createdAt)}
+                    </span>
+                )}
             </div>
 
-            <div className="flex gap-8 border-y border-border/10 py-6">
-                <div className="flex items-baseline gap-2 group cursor-pointer">
-                    <span className="text-2xl font-black tracking-tighter">0</span>
-                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 group-hover:text-primary transition-colors">
-                        Followers
-                    </span>
-                </div>
-                <div className="flex items-baseline gap-2 group cursor-pointer">
-                    <span className="text-2xl font-black tracking-tighter">0</span>
-                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 group-hover:text-primary transition-colors">
-                        Following
-                    </span>
-                </div>
+            {/* Follower stats */}
+            <div className="flex items-center gap-5 pt-1">
+                <Stat value={profile.followingCount ?? 0} label="Following" />
+                <Stat value={profile.followersCount ?? 0} label="Followers" />
             </div>
         </div>
     );
