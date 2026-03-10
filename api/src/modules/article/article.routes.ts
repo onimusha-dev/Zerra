@@ -1,13 +1,13 @@
 import { Hono } from 'hono';
 import { AppEnv } from '@platform/http/types';
-import { ArticleController } from './articles.controller';
+import { ArticleController } from './article.controller';
 import { AuthMiddleware } from '@platform/http/middleware';
 import {
     createArticleSchema,
     updateArticleSchema,
     articleIdSchema,
     userIdSchema,
-} from './articles.validator';
+} from './article.validator';
 import { validate } from '@shared/utils';
 
 /**
@@ -44,6 +44,19 @@ export function createArticleRoutes(
         sessionMiddleware,
         validate('param', articleIdSchema),
         controller.deleteArticle,
+    );
+
+    router.post(
+        '/:id/like',
+        sessionMiddleware,
+        validate('param', articleIdSchema),
+        controller.toggleLike,
+    );
+    router.post(
+        '/:id/bookmark',
+        sessionMiddleware,
+        validate('param', articleIdSchema),
+        controller.toggleBookmark,
     );
 
     return router;

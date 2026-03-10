@@ -1,13 +1,13 @@
 import { LoggerService } from '@platform/logger/logger.service';
-import { ArticleRepository } from './articles.repository';
-import { CreateArticleSchema, UpdateArticleSchema } from './articles.validator';
+import { ArticleRepository } from './article.repository';
+import { CreateArticleSchema, UpdateArticleSchema } from './article.validator';
 import { AuthenticationError, ForbiddenError, NotFoundError } from '@shared/json';
-import { UsersService } from '@modules/users/users.service';
+import { UserService } from '@modules/user/user.service';
 
 export class ArticleService {
     constructor(
         private readonly articleRepository: ArticleRepository,
-        private readonly userService: UsersService,
+        private readonly userService: UserService,
         private readonly logger: LoggerService,
     ) {}
 
@@ -75,5 +75,31 @@ export class ArticleService {
 
     async getUserArticles(userId: number) {
         return this.articleRepository.findByUserId(userId);
+    }
+
+    async toggleLike(userId: number, articleId: number) {
+        await this.getArticleById(articleId);
+        const existingLike = await this.articleRepository.findLike(userId, articleId);
+        if (existingLike) {
+            await this.articleRepository.removeLike(existingLike.id);
+            this.logger.info('Article unlike successful', { articleId, userId });
+            return { liked: false };
+        }
+        await this.articleRepository.addLike(userId, articleId);
+        this.logger.info('Article like successful', { articleId, userId });
+        return { liked: true };
+    }
+
+    async toggleBookmark(userId: number, articleId: number) {
+        await this.getArticleById(articleId);
+        const existingBookmark = await this.articleRepository.findBookmark(userId, articleId);
+        if (existingBookmark) {
+            await this.articleRepository.removeBookmark(existingBookmark.id);
+            this.logger.info('Article bookmark removal successful', { articleId, userId });
+            return { bookmarked: false };
+        }
+        await this.articleRepository.addBookmark(userId, articleId);
+        this.logger.info('Article bookmark successful', { articleId, userId });
+        return { bookmarked: true };
     }
 }

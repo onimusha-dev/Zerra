@@ -8,6 +8,7 @@ export const createArticleSchema = z.object({
     body: z.string().min(1, 'Body cannot be empty'),
     published: z.boolean().optional().default(true),
     enableComments: z.boolean().optional().default(true),
+    banner: z.string().url('Banner URL is invalid').optional(),
 });
 
 export type CreateArticleSchema = z.infer<typeof createArticleSchema>;
@@ -21,6 +22,7 @@ export const updateArticleSchema = z
         body: z.string().min(1, 'Body cannot be empty'),
         published: z.boolean(),
         enableComments: z.boolean(),
+        banner: z.string().url('Banner URL is invalid'),
     })
     .partial();
 
@@ -33,3 +35,6 @@ export const articleIdSchema = z.object({
 export const userIdSchema = z.object({
     userId: z.coerce.number().int().positive(),
 });
+
+export type ArticleIdSchema = z.infer<typeof articleIdSchema>;
+export type ArticleUserIdSchema = z.infer<typeof userIdSchema>;
