@@ -15,8 +15,13 @@ export class UserService {
     ) {}
 
     private stripSensitiveData(user: any) {
-        const { password, ...safeUser } = user;
-        return safeUser;
+        const { password, _count, ...safeUser } = user;
+        const flattenedUser = { ...safeUser };
+        if (_count) {
+            flattenedUser.followersCount = _count.followers;
+            flattenedUser.followingCount = _count.following;
+        }
+        return flattenedUser;
     }
 
     async getUserById(id: number): Promise<IUser> {
@@ -33,23 +38,28 @@ export class UserService {
             throw new NotFoundError('User');
         }
 
-        const [followersCount, followingCount] = await Promise.all([
-            this.userRepository.getFollowersCount(id),
-            this.userRepository.getFollowingCount(id),
-        ]);
-
         let isFollowing = false;
         if (viewerId && viewerId !== id) {
             isFollowing = await this.userRepository.isFollowing(viewerId, id);
         }
 
-        const safeUser = this.stripSensitiveData(user) as IUser;
-        return {
-            ...safeUser,
-            followersCount,
-            followingCount,
-            isFollowing,
-        };
+        const safeUser = this.stripSensitiveData(user);
+        return { ...safeUser, isFollowing };
+    }
+
+    async getProfileByUsername(username: string, viewerId?: number): Promise<any> {
+        const user = await this.userRepository.findUserByUsername(username);
+        if (!user) {
+            throw new NotFoundError('User');
+        }
+
+        let isFollowing = false;
+        if (viewerId && viewerId !== user.id) {
+            isFollowing = await this.userRepository.isFollowing(viewerId, user.id);
+        }
+
+        const safeUser = this.stripSensitiveData(user);
+        return { ...safeUser, isFollowing };
     }
 
     async updateProfile(id: number, profile: IUpdateUserProfile) {

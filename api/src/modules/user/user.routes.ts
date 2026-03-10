@@ -25,6 +25,8 @@ export function createUserRoutes(
     const router = new Hono<AppEnv>();
     const middleware = authMiddleware.validateUserSession;
 
+    // More specific route must be registered BEFORE the wildcard :id route
+    router.get('/profile/username/:username', controller.getUserByUsername);
     router.get('/profile/:id', controller.getUser);
 
     /* @WARNING: Don't to add the auth middleware */
