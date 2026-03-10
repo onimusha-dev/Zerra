@@ -201,6 +201,6 @@ export class Application {
         mainRouter.route('/comments', createCommentRoutes(commentController, authMiddleware));
 
         this.httpServer.registerRoutes(mainRouter);
-        this.logger.debug('All routes configured.');
+        this.logger.info('All routes configured.');
     }
 }

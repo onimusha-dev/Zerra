@@ -21,13 +21,18 @@ export class UserController {
     getUser = async (c: TypedContext<any, UserIdParamSchema>) => {
         const user = c.get('user');
         const { id: userIdParam } = c.req.param();
-        if (userIdParam) {
-            const profile = await this.userService.getProfile(parseInt(userIdParam), user?.id);
-            return c.json(ApiResponse.success(profile), 200);
-        }
+        const profile = await this.userService.getProfile(
+            userIdParam ? parseInt(userIdParam) : user.id,
+            user?.id,
+        );
+        return c.json(ApiResponse.success(profile), 200);
+    };
 
-        const userFromDB = await this.userService.getUserById(user.id);
-        return c.json(ApiResponse.success(userFromDB), 200);
+    getUserByUsername = async (c: any) => {
+        const user = c.get('user');
+        const username = c.req.param('username');
+        const profile = await this.userService.getProfileByUsername(username, user?.id);
+        return c.json(ApiResponse.success(profile), 200);
     };
 
     updateUser = async (c: TypedContext<UserUpdateSchema>) => {

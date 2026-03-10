@@ -12,6 +12,8 @@ export interface IUser {
     banner?: string | null;
     isVerified: boolean;
     isUserBanned: boolean;
+    followersCount: number;
+    followingCount: number;
     createdAt: Date;
     updatedAt: Date;
 }

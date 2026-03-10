@@ -13,6 +13,17 @@ export class UserRepository {
         return this.db.prisma.follow;
     }
 
+    private get userInclude() {
+        return {
+            _count: {
+                select: {
+                    followers: true,
+                    following: true,
+                },
+            },
+        };
+    }
+
     async followUser(followerId: number, followingId: number) {
         return this.follow.create({
             data: { followerId, followingId },
@@ -85,24 +96,28 @@ export class UserRepository {
     async findUserById(id: number) {
         return this.user.findUnique({
             where: { id },
+            include: this.userInclude,
         });
     }
 
     async findUserByEmail(email: string) {
         return this.user.findUnique({
             where: { email },
+            include: this.userInclude,
         });
     }
 
     async findUserByUsername(username: string) {
         return this.user.findUnique({
             where: { username },
+            include: this.userInclude,
         });
     }
 
     async createUser(data: RegisterSchema) {
         return this.user.create({
             data,
+            include: this.userInclude,
         });
     }
 
@@ -110,6 +125,7 @@ export class UserRepository {
         return this.user.update({
             where: { id },
             data: profile,
+            include: this.userInclude,
         });
     }
 
