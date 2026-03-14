@@ -19,10 +19,19 @@ export class PostController {
         return c.json(ApiResponse.success(post), 200);
     };
 
-    createPost = async (c: TypedContext<CreatePostSchema>) => {
+    createPost = async (c: TypedContext<any, any, any, CreatePostSchema>) => {
         const user = c.get('user');
-        const body = c.req.valid('json');
-        const post = await this.postService.createPost(user.id, body);
+        const data = c.req.valid('form');
+
+        const mediaFile = data.media instanceof File ? data.media : undefined;
+        const postData = { ...data };
+        if (mediaFile) delete postData.media;
+
+        const post = await this.postService.createPost(
+            user.id,
+            postData as CreatePostSchema,
+            mediaFile,
+        );
         return c.json(ApiResponse.success(post, 'Post created successfully'), 201);
     };
 

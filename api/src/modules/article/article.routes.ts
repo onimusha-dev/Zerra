@@ -29,7 +29,7 @@ export function createArticleRoutes(
     router.post(
         '/',
         sessionMiddleware,
-        validate('json', createArticleSchema),
+        validate('form', createArticleSchema),
         controller.createArticle,
     );
     router.patch(

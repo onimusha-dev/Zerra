@@ -3,24 +3,15 @@ import { ArticleRepository } from './article.repository';
 import { CreateArticleSchema, UpdateArticleSchema } from './article.validator';
 import { AuthenticationError, ForbiddenError, NotFoundError } from '@shared/json';
 import { UserService } from '@modules/user/user.service';
+import { MediaService } from '@platform/media/media.service';
 
 export class ArticleService {
     constructor(
         private readonly articleRepository: ArticleRepository,
         private readonly userService: UserService,
         private readonly logger: LoggerService,
+        private readonly mediaService: MediaService,
     ) {}
-
-    private async checkUserStatus(userId: number) {
-        const user = await this.userService.getUserById(userId);
-        if (!user) {
-            throw new NotFoundError('User');
-        }
-        if (user.isUserBanned) {
-            throw new ForbiddenError('Your account is banned. You cannot perform this action.');
-        }
-        return user;
-    }
 
     async getAllArticles() {
         return this.articleRepository.findAll();
@@ -34,9 +25,19 @@ export class ArticleService {
         return article;
     }
 
-    async createArticle(userId: number, data: CreateArticleSchema) {
+    async createArticle(userId: number, data: CreateArticleSchema, file?: File) {
         await this.checkUserStatus(userId);
-        const article = await this.articleRepository.createArticle(userId, data);
+
+        let bannerUrl: string | null = data.banner;
+        if (file) {
+            bannerUrl = await this.mediaService.upload(file, 'banner');
+        }
+
+        const article = await this.articleRepository.createArticle(userId, {
+            ...data,
+            banner: bannerUrl,
+        });
+
         this.logger.info('Article created successfully', { articleId: article.id, userId });
         return article;
     }
@@ -101,5 +102,16 @@ export class ArticleService {
         await this.articleRepository.addBookmark(userId, articleId);
         this.logger.info('Article bookmark successful', { articleId, userId });
         return { bookmarked: true };
+    }
+
+    private async checkUserStatus(userId: number) {
+        const user = await this.userService.getUserById(userId);
+        if (!user) {
+            throw new NotFoundError('User');
+        }
+        if (user.isUserBanned) {
+            throw new ForbiddenError('Your account is banned. You cannot perform this action.');
+        }
+        return user;
     }
 }

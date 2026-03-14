@@ -22,10 +22,19 @@ export class ArticleController {
         return c.json(ApiResponse.success(article), 200);
     };
 
-    createArticle = async (c: TypedContext<CreateArticleSchema>) => {
+    createArticle = async (c: TypedContext<any, any, any, CreateArticleSchema>) => {
         const user = c.get('user');
-        const body = c.req.valid('json');
-        const article = await this.articleService.createArticle(user.id, body);
+        const data = c.req.valid('form');
+
+        const bannerFile = data.banner instanceof File ? data.banner : undefined;
+        const articleData = { ...data };
+        if (bannerFile) delete articleData.banner;
+
+        const article = await this.articleService.createArticle(
+            user.id,
+            articleData as CreateArticleSchema,
+            bannerFile,
+        );
         return c.json(ApiResponse.success(article, 'Article created successfully'), 201);
     };
 

@@ -27,7 +27,7 @@ export function createPostRoutes(
         controller.getAuthorPosts,
     );
 
-    router.post('/', sessionMiddleware, validate('json', createPostSchema), controller.createPost);
+    router.post('/', sessionMiddleware, validate('form', createPostSchema), controller.createPost);
     router.patch(
         '/:id',
         sessionMiddleware,

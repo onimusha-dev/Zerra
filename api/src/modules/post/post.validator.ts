@@ -5,8 +5,11 @@ export const createPostSchema = z.object({
         .string()
         .min(1, 'Content cannot be empty')
         .max(500, 'Content cannot exceed 500 characters'),
-    published: z.boolean().optional().default(false),
-    banner: z.string().url('Banner URL is invalid').optional(),
+    published: z
+        .preprocess((val) => val === 'true' || val === true, z.boolean())
+        .optional()
+        .default(false),
+    media: z.any().optional(),
 });
 
 export type CreatePostSchema = z.infer<typeof createPostSchema>;
@@ -17,8 +20,8 @@ export const updatePostSchema = z
             .string()
             .min(1, 'Content cannot be empty')
             .max(500, 'Content cannot exceed 500 characters'),
-        published: z.boolean(),
-        banner: z.string().url('Banner URL is invalid'),
+        published: z.preprocess((val) => val === 'true' || val === true, z.boolean()),
+        media: z.any(),
     })
     .partial();
 

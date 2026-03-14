@@ -3,12 +3,14 @@ import { PostRepository } from './post.repository';
 import { CreatePostSchema, UpdatePostSchema } from './post.validator';
 import { AuthenticationError, ForbiddenError, NotFoundError } from '@shared/json';
 import { UserService } from '@modules/user/user.service';
+import { MediaService } from '@platform/media/media.service';
 
 export class PostService {
     constructor(
         private readonly postRepository: PostRepository,
         private readonly userService: UserService,
         private readonly logger: LoggerService,
+        private readonly mediaService: MediaService,
     ) {}
 
     private async checkAuthorStatus(authorId: number) {
@@ -47,9 +49,17 @@ export class PostService {
         };
     }
 
-    async createPost(authorId: number, data: CreatePostSchema) {
+    async createPost(authorId: number, data: CreatePostSchema, file?: File) {
         await this.checkAuthorStatus(authorId);
-        const post = await this.postRepository.createPost(authorId, data);
+
+        let mediaUrl = data.media;
+        if (file) {
+            mediaUrl = await this.mediaService.upload(file, 'post');
+        }
+        const post = await this.postRepository.createPost(authorId, {
+            ...data,
+            media: mediaUrl,
+        });
         this.logger.info('Post created successfully', { postId: post.id, authorId });
         return post;
     }
@@ -60,11 +70,9 @@ export class PostService {
         if (!post) {
             throw new NotFoundError('Post');
         }
-
         if (post.authorId !== authorId) {
             throw new AuthenticationError('Unauthorized to update this post');
         }
-
         const updatedPost = await this.postRepository.updatePost(postId, data);
         this.logger.info('Post updated successfully', { postId, authorId });
         return updatedPost;
@@ -76,11 +84,9 @@ export class PostService {
         if (!post) {
             throw new NotFoundError('Post');
         }
-
         if (post.authorId !== authorId) {
             throw new AuthenticationError('Unauthorized to delete this post');
         }
-
         const deletedPost = await this.postRepository.deletePost(postId);
         this.logger.info('Post deleted successfully', { postId, authorId });
         return deletedPost;

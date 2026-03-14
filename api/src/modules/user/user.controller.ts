@@ -9,8 +9,10 @@ import {
     DeleteUserSchema,
     UserUpdateSchema,
     UserIdParamSchema,
+    AvatarUpdateSchema,
+    BannerUpdateSchema,
 } from './user.validator';
-import { ApiResponse } from '@shared/json';
+import { ApiResponse, MediaError } from '@shared/json';
 
 export class UserController {
     constructor(
@@ -35,15 +37,25 @@ export class UserController {
         return c.json(ApiResponse.success(profile), 200);
     };
 
-    updateUser = async (c: TypedContext<UserUpdateSchema>) => {
+    updateUser = async (c: TypedContext<any, any, any, UserUpdateSchema>) => {
         const user = c.get('user');
-        const body = c.req.valid('json');
+        const data = c.req.valid('form');
+
+        const avatarFile = data.avatar instanceof File ? data.avatar : undefined;
+        const bannerFile = data.banner instanceof File ? data.banner : undefined;
+
+        const updateData = { ...data };
+        if (avatarFile) delete updateData.avatar;
+        if (bannerFile) delete updateData.banner;
 
         const filteredBody = Object.fromEntries(
-            Object.entries(body).filter(([_, v]) => v !== undefined),
+            Object.entries(updateData).filter(([_, v]) => v !== undefined),
         ) as any;
 
-        const updatedUser = await this.userService.updateProfile(user.id, filteredBody);
+        const updatedUser = await this.userService.updateProfile(user.id, filteredBody, {
+            avatar: avatarFile,
+            banner: bannerFile,
+        });
         return c.json(ApiResponse.success(updatedUser, 'Profile updated successfully'), 200);
     };
 
@@ -112,5 +124,29 @@ export class UserController {
         const userId = idParam ? parseInt(idParam) : c.get('user').id;
         const following = await this.userService.getFollowing(userId);
         return c.json(ApiResponse.success(following), 200);
+    };
+
+    updateAvatar = async (c: TypedContext<any, any, any, AvatarUpdateSchema>) => {
+        const user = c.get('user');
+        const { avatar } = c.req.valid('form');
+
+        if (!(avatar instanceof File)) {
+            throw new MediaError('Avatar file is required');
+        }
+
+        const updatedUser = await this.userService.updateAvatar(user.id, avatar);
+        return c.json(ApiResponse.success(updatedUser, 'Avatar updated successfully'), 200);
+    };
+
+    updateBanner = async (c: TypedContext<any, any, any, BannerUpdateSchema>) => {
+        const user = c.get('user');
+        const { banner } = c.req.valid('form');
+
+        if (!(banner instanceof File)) {
+            throw new MediaError('Banner file is required');
+        }
+
+        const updatedUser = await this.userService.updateBanner(user.id, banner);
+        return c.json(ApiResponse.success(updatedUser, 'Banner updated successfully'), 200);
     };
 }
