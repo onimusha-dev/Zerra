@@ -33,6 +33,11 @@ import { UserRepository } from '@modules/user/user.repository';
 import { MediaProcessor } from '@platform/media/media.processor';
 import { StorageService } from '@platform/storage/storage.service';
 import { MediaService } from '@platform/media/media.service';
+import { OllamaService } from '@platform/ai';
+import { FernService } from '@modules/fern/fern.service';
+import { FernRepository } from '@modules/fern/fern.repository';
+import { FernController } from '@modules/fern';
+import { createFernRoutes } from '@modules/fern/fern.routes';
 
 export class Application {
     private static instance: Application | null = null;
@@ -46,6 +51,7 @@ export class Application {
     private mediaProcessor!: MediaProcessor;
     private storageService!: StorageService;
     private mediaService!: MediaService;
+    private ollamaService!: OllamaService;
     private httpServer!: HttpServer;
 
     static getInstance(): Application {
@@ -72,6 +78,7 @@ export class Application {
             await this.initializeDatabase();
             await this.initialiseCache();
             await this.initializeMedia();
+            await this.initialiseOllama();
 
             // 5: Setup the HTTP Server
             await this.initializeHttpServer();
@@ -131,6 +138,12 @@ export class Application {
             this.logger,
         );
         this.logger.info('Media infrastructure initialized');
+    }
+
+    private async initialiseOllama(): Promise<void> {
+        this.ollamaService = OllamaService.getInstance(this.logger);
+        // container.register(ServiceKeys.OLLAMA, this.ollamaService);
+        this.logger.info('Ollama initialized');
     }
 
     private async initializeHttpServer(): Promise<void> {
@@ -228,6 +241,10 @@ export class Application {
         const commentService = new CommentService(commentRepository, this.logger);
         const commentController = new CommentController(commentService);
 
+        const fernRepository = new FernRepository(this.database, this.logger);
+        const fernService = new FernService(this.logger, fernRepository, this.ollamaService);
+        const fernController = new FernController(fernService);
+
         const authMiddleware = new AuthMiddleware(this.config, this.logger, authService);
         mainRouter.route('/health', createHealthRoutes(healthController));
         mainRouter.route('/auth', createAuthRoutes(authController, authMiddleware));
@@ -235,6 +252,7 @@ export class Application {
         mainRouter.route('/posts', createPostRoutes(postController, authMiddleware));
         mainRouter.route('/articles', createArticleRoutes(articleController, authMiddleware));
         mainRouter.route('/comments', createCommentRoutes(commentController, authMiddleware));
+        mainRouter.route('/fern', createFernRoutes(fernController, authMiddleware));
 
         this.httpServer.registerRoutes(mainRouter);
         this.logger.info('All routes configured.');

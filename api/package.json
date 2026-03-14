@@ -16,6 +16,8 @@
     "dependencies": {
         "@hono/node-server": "^1.4.1",
         "@hono/zod-validator": "^0.7.6",
+        "@langchain/core": "^1.1.32",
+        "@langchain/ollama": "^1.2.6",
         "@prisma/adapter-pg": "^7.4.2",
         "@prisma/client": "^7.4.2",
         "argon2": "^0.44.0",
@@ -27,6 +29,7 @@
         "hono": "^4.0.0",
         "image-size": "^2.0.2",
         "jsonwebtoken": "latest",
+        "langchain": "^1.2.32",
         "nodemailer": "latest",
         "pg": "^8.11.3",
         "pino": "^10.3.1",

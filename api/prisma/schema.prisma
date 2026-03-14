@@ -8,31 +8,32 @@ datasource db {
 }
 
 model User {
-  id               Int        @id @default(autoincrement())
-  name             String     @db.VarChar(100)
-  email            String     @unique @db.VarChar(255)
-  username         String     @unique @db.VarChar(32)
-  bio              String?    @db.VarChar(150)
-  link             String?    @db.VarChar(2048)
-  createdAt        DateTime   @default(now()) @map("created_at")
-  updatedAt        DateTime   @updatedAt @map("updated_at")
-  settings         Json       @default("{}")
-  timezone         String     @default("UTC")
-  avatar           String?    @db.VarChar(2048)
-  banner           String?    @db.VarChar(2048)
-  password         String     @map("password_hash") @db.VarChar(255)
-  twoFactorEnabled Boolean    @default(false) @map("two_factor_enabled")
-  refreshToken     String?    @map("refresh_token") @db.VarChar(255)
-  isVerified       Boolean    @default(false) @map("is_verified")
-  isUserBanned     Boolean    @default(false) @map("is_user_banned")
+  id               Int               @id @default(autoincrement())
+  name             String            @db.VarChar(100)
+  email            String            @unique @db.VarChar(255)
+  username         String            @unique @db.VarChar(32)
+  bio              String?           @db.VarChar(150)
+  link             String?           @db.VarChar(2048)
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  settings         Json              @default("{}")
+  timezone         String            @default("UTC")
+  avatar           String?           @db.VarChar(2048)
+  banner           String?           @db.VarChar(2048)
+  password         String            @map("password_hash") @db.VarChar(255)
+  twoFactorEnabled Boolean           @default(false) @map("two_factor_enabled")
+  refreshToken     String?           @map("refresh_token") @db.VarChar(255)
+  isVerified       Boolean           @default(false) @map("is_verified")
+  isUserBanned     Boolean           @default(false) @map("is_user_banned")
   articles         Article[]
   posts            Post[]
   comments         Comment[]
   likes            Like[]
   bookmarks        Bookmark[]
   searches         Search[]
-  followers        Follow[]   @relation("followers")
-  following        Follow[]   @relation("following")
+  followers        Follow[]          @relation("followers")
+  following        Follow[]          @relation("following")
+  fernChatSessions FernChatSession[]
 }
 
 model Post {
@@ -133,4 +134,39 @@ model Follow {
   createdAt   DateTime @default(now()) @map("created_at")
 
   @@id([followerId, followingId])
+}
+
+model FernChatSession {
+  id               String            @id @default(uuid())
+  userId           Int
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name             String            @db.VarChar(100)
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  fernChatMessages FernChatMessage[]
+
+  @@index([userId])
+}
+
+model FernChatMessage {
+  id                 String          @id @default(uuid())
+  sessionId          String
+  session            FernChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role               String          @db.VarChar(50)
+  userPrompt         String          @map("user_prompt") @db.Text
+  aiResponse         String          @map("ai_response") @db.Text
+  reasoning          String?         @map("ai_reasoning") @db.Text
+  promptTokens       Int?            @map("prompt_tokens")
+  completionTokens   Int?            @map("completion_tokens")
+  totalTokens        Int?            @map("total_tokens")
+  totalDuration      BigInt?         @map("total_duration")
+  loadDuration       BigInt?         @map("load_duration")
+  promptEvalCount    Int?            @map("prompt_eval_count")
+  promptEvalDuration BigInt?         @map("prompt_eval_duration")
+  evalCount          Int?            @map("eval_count")
+  evalDuration       BigInt?         @map("eval_duration")
+  metadata           Json            @default("{}")
+  createdAt          DateTime        @default(now()) @map("created_at")
+
+  @@index([sessionId])
 }
