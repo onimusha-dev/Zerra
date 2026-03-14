@@ -87,3 +87,15 @@ export class ServiceUnavailableError extends AppError {
         super(503, message, false, 'SERVICE_UNAVAILABLE');
     }
 }
+
+export class UnsupportedMediaTypeError extends AppError {
+    constructor(message = 'Unsupported media type') {
+        super(415, message, true, 'UNSUPPORTED_MEDIA_TYPE');
+    }
+}
+
+export class MediaError extends AppError {
+    constructor(message: string, details?: any) {
+        super(400, message, true, 'MEDIA_ERROR', details);
+    }
+}

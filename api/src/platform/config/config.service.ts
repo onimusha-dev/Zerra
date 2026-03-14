@@ -14,6 +14,7 @@ const configSchema = z.object({
     REDIS_HOST: z.string().optional().default('localhost'),
     REDIS_PORT: z.string().optional().default('6379').transform(Number),
     REDIS_PASSWORD: z.string().optional(),
+    APP_URL: z.string().optional().default('http://localhost:5500'),
 
     // Authentication Configuration
     ACCESS_TOKEN_SECRET: z.string(),
@@ -100,6 +101,10 @@ export class ConfigService {
 
     get logLevel(): string {
         return this.config.LOG_LEVEL;
+    }
+
+    get appUrl(): string {
+        return this.config.APP_URL;
     }
 
     get npm_package_version(): string {
