@@ -17,7 +17,7 @@ export type AppEnv = {
  *      P: The Path params schema
  *      Q: The Query string schema
  */
-export type TypedContext<T = any, P = any, Q = any> = Context<
+export type TypedContext<T = any, P = any, Q = any, F = any> = Context<
     AppEnv,
     any,
     {
@@ -25,11 +25,13 @@ export type TypedContext<T = any, P = any, Q = any> = Context<
             json: T;
             param: P;
             query: Q;
+            form: F;
         };
         in: {
             json: any;
             param: any;
             query: any;
+            form: any;
         };
     }
 >;

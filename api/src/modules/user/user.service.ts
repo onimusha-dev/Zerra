@@ -1,5 +1,6 @@
 import { LoggerService } from '@platform/logger/logger.service';
 import { UserRepository } from './user.repository';
+import { MediaService } from '@platform/media/media.service';
 import { hashString, verifyHash } from '@shared/utils/auth';
 import { IUser, IUpdateUserProfile } from '@shared/types';
 import { AuthenticationError, ConflictError, NotFoundError, ForbiddenError } from '@shared/json';
@@ -12,6 +13,7 @@ export class UserService {
     constructor(
         private readonly userRepository: UserRepository,
         private readonly logger: LoggerService,
+        private readonly mediaService: MediaService,
     ) {}
 
     private stripSensitiveData(user: any) {
@@ -62,13 +64,73 @@ export class UserService {
         return { ...safeUser, isFollowing };
     }
 
-    async updateProfile(id: number, profile: IUpdateUserProfile) {
+    async updateProfile(
+        id: number,
+        profile: IUpdateUserProfile,
+        files?: { avatar?: File; banner?: File },
+    ) {
         const user = await this.userRepository.findUserById(id);
         if (!user) {
             throw new NotFoundError('User');
         }
-        const updatedUser = await this.userRepository.updateUserProfile(id, profile);
+
+        const updates: any = { ...profile };
+
+        // 1. Handle Avatar upload if provided
+        if (files?.avatar) {
+            updates.avatar = await this.mediaService.upload(files.avatar, 'avatar');
+            // Cleanup old avatar
+            if (user.avatar && !user.avatar.startsWith('http')) {
+                await this.mediaService.remove(user.avatar);
+            }
+        }
+
+        // 2. Handle Banner upload if provided
+        if (files?.banner) {
+            updates.banner = await this.mediaService.upload(files.banner, 'banner');
+            // Cleanup old banner
+            if (user.banner && !user.banner.startsWith('http')) {
+                await this.mediaService.remove(user.banner);
+            }
+        }
+
+        const updatedUser = await this.userRepository.updateUserProfile(id, updates);
         this.logger.info('Profile updated successfully', { userId: id });
+        return this.stripSensitiveData(updatedUser);
+    }
+
+    async updateAvatar(userId: number, file: File) {
+        const user = await this.userRepository.findUserById(userId);
+        if (!user) throw new NotFoundError('User');
+
+        const avatarUrl = await this.mediaService.upload(file, 'avatar');
+
+        // Optionally delete old avatar if it exists and is local
+        if (user.avatar && !user.avatar.startsWith('http')) {
+            await this.mediaService.remove(user.avatar);
+        }
+
+        const updatedUser = await this.userRepository.updateUserProfile(userId, {
+            avatar: avatarUrl,
+        });
+        this.logger.info('Avatar updated successfully', { userId });
+        return this.stripSensitiveData(updatedUser);
+    }
+
+    async updateBanner(userId: number, file: File) {
+        const user = await this.userRepository.findUserById(userId);
+        if (!user) throw new NotFoundError('User');
+
+        const bannerUrl = await this.mediaService.upload(file, 'banner');
+
+        if (user.banner && !user.banner.startsWith('http')) {
+            await this.mediaService.remove(user.banner);
+        }
+
+        const updatedUser = await this.userRepository.updateUserProfile(userId, {
+            banner: bannerUrl,
+        });
+        this.logger.info('Banner updated successfully', { userId });
         return this.stripSensitiveData(updatedUser);
     }
 

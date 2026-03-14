@@ -19,3 +19,11 @@ export interface IUser {
 }
 
 export type IUpdateUserProfile = Partial<Omit<IUser, 'id' | 'email' | 'createdAt' | 'updatedAt'>>;
+
+export enum OllamaModels {
+    LFM2_5_THINKING = 'lfm2.5-thinking:1.2b',
+    QWEN3 = 'qwen3:1.7b',
+    QWEN3_EMBEDDING = 'qwen3-embedding:0.6b',
+    QWEN3_0_6B = 'qwen3:0.6b',
+    FUNCTIONGEMMA = 'functiongemma:270m',
+}

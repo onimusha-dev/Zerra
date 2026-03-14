@@ -12,8 +12,13 @@ export const validate = <T extends ZodSchema, P extends keyof ValidationTargets>
     target: P,
     schema: T,
 ) =>
-    zValidator(target, schema, (result) => {
+    zValidator(target, schema, (result, c) => {
         if (!result.success) {
+            console.warn(
+                `[Validation Shield] Target: ${target} failed. Data received:`,
+                result.data,
+            );
+
             const fields: Record<string, string[]> = {};
             result.error.issues.forEach((issue) => {
                 const path = issue.path.join('.') || 'body';

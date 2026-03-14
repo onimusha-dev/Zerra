@@ -11,9 +11,9 @@ export const userUpdateSchema = z
             .min(5, 'Username must be at least 5 characters long')
             .max(16, 'Username must be at most 16 characters long'),
         bio: z.string().max(150, 'Bio must be at most 150 characters long'),
-        link: z.url('Invalid website URL'),
-        avatar: z.url('Avatar URL is invalid'),
-        banner: z.url('Banner URL is invalid'),
+        link: z.string().optional(),
+        avatar: z.any(),
+        banner: z.any(),
         timezone: z.string(),
     })
     .partial();
@@ -52,3 +52,13 @@ export const userIdParamSchema = z.object({
 });
 
 export type UserIdParamSchema = z.infer<typeof userIdParamSchema>;
+
+export const avatarUpdateSchema = z.object({
+    avatar: z.any(),
+});
+export type AvatarUpdateSchema = z.infer<typeof avatarUpdateSchema>;
+
+export const bannerUpdateSchema = z.object({
+    banner: z.any(),
+});
+export type BannerUpdateSchema = z.infer<typeof bannerUpdateSchema>;

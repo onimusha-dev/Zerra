@@ -6,9 +6,15 @@ export const createArticleSchema = z.object({
         .min(1, 'Title cannot be empty')
         .max(100, 'Title cannot exceed 100 characters'),
     body: z.string().min(1, 'Body cannot be empty'),
-    published: z.boolean().optional().default(true),
-    enableComments: z.boolean().optional().default(true),
-    banner: z.string().url('Banner URL is invalid').optional(),
+    published: z
+        .preprocess((val) => val === 'true' || val === true, z.boolean())
+        .optional()
+        .default(true),
+    enableComments: z
+        .preprocess((val) => val === 'true' || val === true, z.boolean())
+        .optional()
+        .default(true),
+    banner: z.any().optional(),
 });
 
 export type CreateArticleSchema = z.infer<typeof createArticleSchema>;
@@ -20,9 +26,9 @@ export const updateArticleSchema = z
             .min(1, 'Title cannot be empty')
             .max(100, 'Title cannot exceed 100 characters'),
         body: z.string().min(1, 'Body cannot be empty'),
-        published: z.boolean(),
-        enableComments: z.boolean(),
-        banner: z.string().url('Banner URL is invalid'),
+        published: z.preprocess((val) => val === 'true' || val === true, z.boolean()),
+        enableComments: z.preprocess((val) => val === 'true' || val === true, z.boolean()),
+        banner: z.any(),
     })
     .partial();
 

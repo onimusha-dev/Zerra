@@ -2,6 +2,7 @@ import { DatabaseService } from '@platform/database';
 import { HTTP_STATUS } from '@shared/constants/httpStatus';
 import { ApiResponse } from '@shared/json';
 import { Context } from 'hono';
+import { ConfigService } from '@platform/config';
 
 /**
  * @module HealthController
@@ -15,7 +16,7 @@ import { Context } from 'hono';
 export class HealthController {
     constructor(
         private readonly db: DatabaseService,
-        // private readonly cache: CacheService
+        private readonly config: ConfigService,
     ) {}
 
     /**
@@ -138,8 +139,8 @@ export class HealthController {
             {
                 status: 'healthy',
                 service: 'api',
-                version: process.env.npm_package_version ?? '1.0.0',
-                environment: process.env.NODE_ENV ?? 'development',
+                version: this.config.npm_package_version,
+                environment: this.config.nodeEnv,
                 process: {
                     pid: process.pid,
                     node_version: process.version,
