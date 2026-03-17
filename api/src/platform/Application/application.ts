@@ -200,7 +200,7 @@ export class Application {
 
     private registerModules() {
         const mainRouter = new Hono<AppEnv>();
-        const healthController = new HealthController(this.database, this.config);
+        const healthController = new HealthController(this.database, this.cache, this.config);
 
         // Creative Diagnostic: Media Vault Explorer
         mainRouter.get('/media-vault', async (c) => {

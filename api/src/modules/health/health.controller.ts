@@ -3,6 +3,7 @@ import { HTTP_STATUS } from '@shared/constants/httpStatus';
 import { ApiResponse } from '@shared/json';
 import { Context } from 'hono';
 import { ConfigService } from '@platform/config';
+import { CacheService } from '@platform/cache';
 
 /**
  * @module HealthController
@@ -16,6 +17,7 @@ import { ConfigService } from '@platform/config';
 export class HealthController {
     constructor(
         private readonly db: DatabaseService,
+        private readonly cache: CacheService,
         private readonly config: ConfigService,
     ) {}
 
@@ -57,7 +59,7 @@ export class HealthController {
 
         const dependencies: Record<string, DepStatus> = {
             database: { status: 'down' },
-            // cache: { status: 'down' },
+            cache: { status: 'down' },
         };
 
         try {
@@ -75,16 +77,15 @@ export class HealthController {
             };
         }
 
-        /**
-         * @todo: uncomment after CacheService is wired up
-         *
-         * try {
-         *     const result = await this.cache.healthCheck();
-         *     dependencies.cache = { status: result.status, latency_ms: result.delayMs };
-         * } catch (err) {
-         *     dependencies.cache = { status: 'down', error: err instanceof Error ? err.message : 'Unknown error' };
-         * }
-         */
+        try {
+            const result = await this.cache.healthCheck();
+            dependencies.cache = { status: result.status, latency_ms: result.delayMs };
+        } catch (err) {
+            dependencies.cache = {
+                status: 'down',
+                error: err instanceof Error ? err.message : 'Unknown error',
+            };
+        }
 
         const isReady = Object.values(dependencies).every((d) => d.status === 'up');
         const statusCode = isReady ? HTTP_STATUS.OK : HTTP_STATUS.SERVICE_UNAVAILABLE;
@@ -134,6 +135,24 @@ export class HealthController {
             };
         }
 
+        let cacheHealth: { status: 'up' | 'down'; latency_ms?: number; error?: string } = {
+            status: 'down',
+        };
+        try {
+            const result = await this.cache.healthCheck();
+            cacheHealth = {
+                status: result.status,
+                ...(result.status === 'up' && result.delayMs !== undefined
+                    ? { latency_ms: Number(result.delayMs) }
+                    : { error: String(result.error ?? 'Unknown error') }),
+            };
+        } catch (err) {
+            cacheHealth = {
+                status: 'down',
+                error: err instanceof Error ? err.message : 'Unknown error',
+            };
+        }
+
         const response = new ApiResponse(
             HTTP_STATUS.OK,
             {
@@ -157,7 +176,7 @@ export class HealthController {
                 },
                 dependencies: {
                     database: dbHealth,
-                    // cache: cacheHealth,
+                    cache: cacheHealth,
                 },
                 timestamp: Date.now(),
             },
