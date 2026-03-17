@@ -77,7 +77,7 @@ export class Application {
             await this.initializeLogger();
             await this.initializeSmtp();
             await this.initializeDatabase();
-            await this.initialiseCache();
+            await this.initializeCache();
             await this.initializeMedia();
             await this.initializeAI();
 
@@ -118,10 +118,15 @@ export class Application {
         await this.database.connect();
         container.register(ServiceKeys.DATABASE, this.database);
         const health = await this.database.healthCheck();
+
+        if (health.status === 'down') {
+            this.logger.error('Database health check failed', { error: health.error });
+        }
+
         this.logger.info('Database initialized', { status: health.status });
     }
 
-    private async initialiseCache(): Promise<void> {
+    private async initializeCache(): Promise<void> {
         this.cache = CacheService.getInstance(this.config, this.logger);
         await this.cache.connect();
         container.register(ServiceKeys.CACHE, this.cache);
