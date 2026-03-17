@@ -1,4 +1,7 @@
 import { Application } from '@platform/Application';
+import dns from 'dns';
+
+dns.setDefaultResultOrder('ipv4first');
 
 const app = Application.getInstance();
 
