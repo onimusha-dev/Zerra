@@ -1,154 +1,115 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { useAuthMutations } from '@/hooks/mutations/useAuth';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Loader2 } from 'lucide-react';
-
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-
-import { fetchApi } from '@/lib/api';
+import { Loader2, Mail, Lock, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const { loginMutation } = useAuthMutations();
+    const { isAuthenticated, user } = useAuthStore();
     const router = useRouter();
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
-    async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-        event.preventDefault();
-        setIsLoading(true);
-        setError(null);
-
-        const formData = new FormData(event.currentTarget);
-        const identifier = formData.get('identifier') as string;
-        const password = formData.get('password') as string;
-
-        const isEmail = identifier.includes('@');
-        const payload: any = { password };
-
-        if (isEmail) {
-            payload.email = identifier;
-        } else {
-            payload.username = identifier;
+    useEffect(() => {
+        console.log('[LoginPage] Auth State:', { isAuthenticated, username: user?.username });
+        if (isAuthenticated && user) {
+            console.log('[LoginPage] Authenticated, redirecting to profile:', user.username);
+            router.push(`/profile/${user.username}`);
+            router.refresh();
         }
+    }, [isAuthenticated, user, router]);
 
-        try {
-            const response = await fetchApi('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                router.push('/');
-            } else {
-                setError(data.message || 'Invalid credentials.');
-            }
-        } catch (err) {
-            setError('Synchronization failure.');
-        } finally {
-            setIsLoading(false);
-        }
-    }
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        loginMutation.mutate({ email, password });
+    };
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="text-center space-y-2">
-                <h2 className="text-xl font-bold tracking-tight uppercase leading-none">
-                    Access Node
-                </h2>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-primary/40">
-                    Synchronize your credentials
-                </p>
-            </div>
-
-            <form onSubmit={onSubmit} className="space-y-6">
-                {error && (
-                    <Alert
-                        variant="destructive"
-                        className="rounded-none border-destructive/20 bg-destructive/5 text-rose-500"
-                    >
-                        <AlertDescription className="text-[10px] font-bold uppercase tracking-widest leading-normal">
-                            {error}
-                        </AlertDescription>
-                    </Alert>
-                )}
-
-                <div className="space-y-4">
-                    <div className="space-y-2">
-                        <Label
-                            htmlFor="identifier"
-                            className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 px-1"
-                        >
-                            Cleartext Ident
-                        </Label>
-                        <Input
-                            id="identifier"
-                            name="identifier"
-                            placeholder="Email or Username"
-                            type="text"
-                            autoCapitalize="none"
-                            autoComplete="username"
-                            required
-                            disabled={isLoading}
-                            className="h-12 rounded-none bg-muted/10 border-border/10 px-4 font-bold tracking-tight focus-visible:ring-1 focus-visible:ring-primary/20 placeholder:text-muted-foreground/20 transition-all"
-                        />
+        <div className="flex min-h-screen items-center justify-center bg-background px-4">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="w-full max-w-md space-y-8 rounded-3xl border bg-secondary-ui/20 p-8 backdrop-blur-xl"
+            >
+                <div className="text-center">
+                    <div className="mx-auto h-12 w-12 rounded-2xl bg-primary-ui flex items-center justify-center mb-4">
+                        <span className="font-bold text-background text-2xl italic">Z</span>
                     </div>
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between px-1">
-                            <Label
-                                htmlFor="password"
-                                className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40"
-                            >
-                                Cipher Key
-                            </Label>
-                            <Link
-                                href="/auth/forgot-password"
-                                className="text-[10px] font-bold uppercase tracking-widest text-primary/40 hover:text-primary transition-colors"
-                            >
-                                Lost Access?
-                            </Link>
-                        </div>
-                        <Input
-                            id="password"
-                            name="password"
-                            type="password"
-                            autoComplete="current-password"
-                            required
-                            disabled={isLoading}
-                            className="h-12 rounded-none bg-muted/10 border-border/10 px-4 font-bold focus-visible:ring-1 focus-visible:ring-primary/20 transition-all text-primary"
-                        />
-                    </div>
+                    <h2 className="text-3xl font-bold tracking-tight">Welcome back</h2>
+                    <p className="mt-2 text-sm text-secondary-foreground opacity-60">
+                        Login to your Zerra account to continue
+                    </p>
                 </div>
 
-                <Button type="submit" className="btn-primary w-full h-12" disabled={isLoading}>
-                    {isLoading ? (
-                        <>
-                            <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                            Syncing...
-                        </>
-                    ) : (
-                        <>
-                            Engage Auth
-                            <ArrowRight className="ml-2 h-3 w-3" />
-                        </>
-                    )}
-                </Button>
+                <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+                    <div className="space-y-4">
+                        <div className="relative">
+                            <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 opacity-40" />
+                            <input
+                                type="email"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Email address"
+                                className="w-full rounded-2xl border bg-background py-4 pl-12 pr-4 outline-none focus:ring-2 focus:ring-primary-ui/20 transition-all"
+                            />
+                        </div>
+                        <div className="relative">
+                            <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 opacity-40" />
+                            <input
+                                type="password"
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="Password"
+                                className="w-full rounded-2xl border bg-background py-4 pl-12 pr-4 outline-none focus:ring-2 focus:ring-primary-ui/20 transition-all"
+                            />
+                        </div>
+                    </div>
 
-                <div className="text-center pt-2">
+                    {loginMutation.isError && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex items-center gap-2 rounded-xl bg-destructive/10 p-4 text-sm text-destructive"
+                        >
+                            <AlertCircle className="h-4 w-4" />
+                            <span>
+                                {(loginMutation.error as any)?.response?.data?.message ||
+                                    loginMutation.error?.message ||
+                                    'Invalid email or password'}
+                            </span>
+                        </motion.div>
+                    )}
+
+                    <button
+                        type="submit"
+                        disabled={loginMutation.isPending}
+                        className="group relative flex w-full justify-center rounded-2xl bg-primary-ui py-4 text-sm font-bold text-background transition-all hover:opacity-90 disabled:opacity-50"
+                    >
+                        {loginMutation.isPending ? (
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                            'Sign in'
+                        )}
+                    </button>
+                </form>
+
+                <p className="text-center text-sm text-secondary-foreground opacity-60">
+                    Don&apos;t have an account?{' '}
                     <Link
                         href="/auth/register"
-                        className="text-[10px] font-bold uppercase tracking-widest text-primary/40 hover:text-primary transition-colors"
+                        className="font-bold text-primary-ui hover:underline"
                     >
-                        Request New Node Initial
+                        Create one
                     </Link>
-                </div>
-            </form>
+                </p>
+            </motion.div>
         </div>
     );
 }

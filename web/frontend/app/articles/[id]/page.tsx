@@ -1,231 +1,207 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Calendar, Heart, Share, Bookmark, Clock, MessageSquare, ArrowLeft } from 'lucide-react';
-import { useRouter, useParams } from 'next/navigation';
-import Link from 'next/link';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { fetchApi } from '@/lib/api';
-import { CommentList } from '@/components/Comments';
+import React, { useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import MainLayout from '@/components/layout/main-layout';
+import { useArticle } from '@/hooks/queries/useArticles';
+import { useArticleComments, useCreateComment } from '@/hooks/queries/useComments';
+import ArticleCard from '@/components/features/feed/article-card';
+import CommentCard from '@/components/features/feed/comment-card';
+import { ArrowLeft, Loader2, User } from 'lucide-react';
+import { useAuthStore } from '@/stores/useAuthStore';
+import { getMediaUrl } from '@/lib/utils';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { VerificationBadge } from '@/components/ui/verification-badge';
 
-interface ArticleAuthor {
-    name: string;
-    username: string;
-    avatar?: string;
-}
-
-interface Article {
-    id: string;
-    title: string;
-    body: string;
-    banner?: string;
-    createdAt: string;
-    author: ArticleAuthor;
-}
-
-export default function ArticleViewPage() {
+export default function ArticlePage() {
+    const { id } = useParams();
     const router = useRouter();
-    const params = useParams();
-    const id = params?.id as string;
+    const articleId = Number(id);
+    const { user } = useAuthStore();
 
-    const [article, setArticle] = useState<Article | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const { data: article, isLoading: articleLoading, error: articleError } = useArticle(articleId);
+    const { data: comments, isLoading: commentsLoading } = useArticleComments(articleId);
+    const { mutateAsync: createComment, isPending: isCommenting } = useCreateComment();
 
-    useEffect(() => {
-        if (!id) return;
-        setIsLoading(true);
-        fetchApi(`/api/articles/${id}`)
-            .then((res) => {
-                if (!res.ok) throw new Error('Article not found.');
-                return res.json();
-            })
-            .then((result) => {
-                if (result.success) setArticle(result.data);
-                else throw new Error(result.message);
-            })
-            .catch((err) => setError(err.message))
-            .finally(() => setIsLoading(false));
-    }, [id]);
+    const [content, setContent] = useState('');
 
-    if (isLoading)
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 opacity-25">
-                <div className="h-7 w-7 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-                <span className="text-[9px] font-black uppercase tracking-[0.4em]">
-                    Loading Article
-                </span>
-            </div>
-        );
-
-    if (error || !article)
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] p-10 text-center gap-5">
-                <h2 className="text-xl font-black tracking-tight text-rose-500 uppercase">
-                    {error || 'Article not found'}
-                </h2>
-                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground/40">
-                    This archival node is inaccessible.
-                </p>
-                <Button
-                    variant="outline"
-                    onClick={() => router.push('/articles')}
-                    className="rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] px-8 h-9"
-                >
-                    Back to Journal
-                </Button>
-            </div>
-        );
-
-    const readTime = Math.max(1, Math.ceil(article.body.split(' ').length / 200));
-    const pubDate = new Date(article.createdAt).toLocaleDateString(undefined, {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-    });
+    const handleComment = async () => {
+        if (!content.trim() || isCommenting) return;
+        try {
+            await createComment({ content, articleId });
+            setContent('');
+        } catch (error) {
+            console.error('Failed to post comment', error);
+        }
+    };
 
     return (
-        <div className="flex flex-col min-h-screen">
-            {/* Sticky header */}
-            <div className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl border-b border-border/8 px-4 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => router.back()}
-                        className="rounded-2xl h-9 w-9 hover:bg-muted/50"
-                    >
-                        <ArrowLeft className="h-4 w-4" />
-                    </Button>
-                    <div>
-                        <p className="text-sm font-black uppercase tracking-tight leading-none">
-                            Journal
-                        </p>
-                        <p className="text-[9px] font-bold text-primary/50 uppercase tracking-[0.2em] mt-0.5">
-                            Editorial
-                        </p>
+        <MainLayout>
+            <div className="flex h-14 items-center border-b px-4 sticky top-0 bg-background/80 backdrop-blur-md z-20 gap-4">
+                <button
+                    onClick={() => router.back()}
+                    className="rounded-full p-2 hover:bg-secondary-ui transition-colors text-foreground"
+                >
+                    <ArrowLeft className="h-5 w-5" />
+                </button>
+                <div className="flex flex-col min-w-0">
+                    <div className="flex items-center gap-1">
+                        <h2 className="text-xl font-bold leading-tight truncate">
+                            {(article as any)?.author?.name || 'Article'}
+                        </h2>
+                        {(article as any)?.author?.isVerified && <VerificationBadge size={18} />}
                     </div>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="rounded-2xl h-9 w-9 text-muted-foreground/50 hover:text-primary"
-                    >
-                        <Bookmark className="h-4 w-4" />
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="rounded-2xl h-9 w-9 text-muted-foreground/50 hover:text-primary"
-                    >
-                        <Share className="h-4 w-4" />
-                    </Button>
+                    <span className="text-sm text-secondary-foreground opacity-60">
+                        Reading Article
+                    </span>
                 </div>
             </div>
 
-            <article className="px-4 pt-8 pb-24 animate-in fade-in duration-500 max-w-prose mx-auto w-full">
-                {/* Title block */}
-                <div className="space-y-4 mb-8">
-                    <h1 className="text-3xl font-black tracking-tight leading-tight capitalize text-foreground">
-                        {article.title}
-                    </h1>
-                    <div className="flex items-center gap-4 text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40">
-                        <span className="flex items-center gap-1.5">
-                            <Calendar className="h-3 w-3" />
-                            {pubDate}
-                        </span>
-                        <span className="opacity-30">·</span>
-                        <span className="flex items-center gap-1.5">
-                            <Clock className="h-3 w-3" />
-                            {readTime} min read
-                        </span>
+            <div className="flex flex-col min-h-[calc(100vh-3.5rem)]">
+                {articleLoading ? (
+                    <div className="flex justify-center p-12">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary-ui" />
                     </div>
-                </div>
+                ) : articleError || !article ? (
+                    <div className="flex flex-col items-center justify-center p-12 text-center">
+                        <h3 className="text-xl font-bold">Article not found</h3>
+                        <p className="text-secondary-foreground opacity-60 mt-2">
+                            It looks like this article was deleted or does not exist.
+                        </p>
+                    </div>
+                ) : (
+                    <>
+                        {/* The main article */}
+                        <div className="flex flex-col bg-background">
+                            {article.banner && (
+                                <div className="w-full aspect-video md:aspect-21/9 overflow-hidden border-b border-border-ui">
+                                    <img
+                                        src={getMediaUrl(article.banner)}
+                                        alt={article.title}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                            )}
 
-                {/* Banner */}
-                {article.banner && (
-                    <div className="rounded-2xl overflow-hidden border border-border/10 mb-8">
-                        <img
-                            src={article.banner}
-                            alt={article.title}
-                            className="w-full object-cover max-h-[400px]"
-                        />
-                    </div>
+                            <div className="p-6 md:p-8 flex flex-col gap-6 max-w-3xl mx-auto w-full">
+                                {/* Author Info */}
+                                <div className="flex items-center gap-3">
+                                    <div className="h-12 w-12 rounded-full overflow-hidden bg-secondary-ui border border-border-ui">
+                                        {/* @ts-ignore - The Article type definition doesn't have deep author typings mapped yet in frontend type */}
+                                        {article.author?.avatar ? (
+                                            <img
+                                                src={getMediaUrl((article as any).author.avatar)}
+                                                alt="Author"
+                                                className="h-full w-full object-cover"
+                                            />
+                                        ) : (
+                                            <User className="h-6 w-6 opacity-40 m-auto mt-3" />
+                                        )}
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <div className="flex items-center gap-1">
+                                            <span className="font-bold">
+                                                {(article as any).author?.name || 'Unknown Author'}
+                                            </span>
+                                            {(article as any).author?.isVerified && (
+                                                <VerificationBadge size={16} />
+                                            )}
+                                        </div>
+                                        <span className="text-sm opacity-50">
+                                            @{(article as any).author?.username || 'unknown'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <h1 className="text-3xl md:text-5xl font-black leading-tight text-foreground">
+                                    {article.title}
+                                </h1>
+
+                                <div className="h-px w-full bg-border-ui" />
+
+                                <div className="prose prose-neutral dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-secondary-ui prose-pre:border prose-pre:border-border-ui prose-a:text-primary-ui text-[17px] md:text-lg">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                        {article.body}
+                                    </ReactMarkdown>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Hidden ArticleCard to keep the like/bookmark logic uniform but out of sight for now */}
+                        <div className="hidden border-y border-border-ui p-4 bg-secondary-ui/5">
+                            <ArticleCard article={article} />
+                        </div>
+
+                        {/* Reply Input Box */}
+                        <div
+                            id="comments"
+                            className="w-full border-t border-b p-4 flex flex-col gap-3 scroll-mt-20"
+                        >
+                            <h3 className="font-bold text-lg mb-2">
+                                Discussion ({article._count?.comments || 0})
+                            </h3>
+                            <div className="flex gap-3 w-full">
+                                <div className="h-10 w-10 shrink-0 rounded-full bg-secondary-ui flex items-center justify-center overflow-hidden border border-border-ui">
+                                    {user?.avatar ? (
+                                        <img
+                                            src={getMediaUrl(user.avatar)}
+                                            alt="Avatar"
+                                            className="h-full w-full object-cover"
+                                        />
+                                    ) : (
+                                        <User className="h-5 w-5 opacity-40" />
+                                    )}
+                                </div>
+                                <div className="flex grow flex-col gap-2">
+                                    <textarea
+                                        value={content}
+                                        onChange={(e) => setContent(e.target.value)}
+                                        placeholder="Share your thoughts..."
+                                        className="w-full resize-none border-none bg-transparent text-lg outline-none placeholder:text-foreground/40 mt-1.5 focus:ring-0"
+                                        rows={1}
+                                        onInput={(e) => {
+                                            e.currentTarget.style.height = 'auto';
+                                            e.currentTarget.style.height =
+                                                Math.min(e.currentTarget.scrollHeight, 200) + 'px';
+                                        }}
+                                    />
+                                    <div className="flex w-full items-center justify-end mt-2 pt-2 border-t border-border-ui">
+                                        <button
+                                            onClick={handleComment}
+                                            disabled={!content.trim() || isCommenting}
+                                            className="flex items-center gap-2 rounded-full bg-primary-ui px-5 py-1.5 font-bold text-background transition-transform hover:opacity-90 active:scale-95 disabled:opacity-50 disabled:hover:opacity-50"
+                                        >
+                                            {isCommenting ? (
+                                                <Loader2 className="h-4 w-4 animate-spin outline-none" />
+                                            ) : (
+                                                'Respond'
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Comments List */}
+                        {commentsLoading ? (
+                            <div className="flex justify-center p-8">
+                                <Loader2 className="h-6 w-6 animate-spin text-primary-ui opacity-50" />
+                            </div>
+                        ) : comments && comments.length > 0 ? (
+                            <div className="flex flex-col pb-20">
+                                {comments.map((comment, index) => (
+                                    <CommentCard key={comment.id || index} comment={comment} />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="p-8 text-center text-sm font-medium text-foreground/40">
+                                No discussion yet. Be the first to share your thoughts!
+                            </div>
+                        )}
+                    </>
                 )}
-
-                {/* Author */}
-                <div className="flex items-center gap-4 py-5 mb-8 border-y border-border/8">
-                    <Link href={`/profile?username=${article.author?.username}`}>
-                        <Avatar className="h-11 w-11 rounded-2xl border border-border/10 hover:border-primary/30 transition-all">
-                            <AvatarImage src={article.author?.avatar} className="object-cover" />
-                            <AvatarFallback className="font-black uppercase bg-primary/10 text-primary text-sm">
-                                {article.author?.name?.[0] || 'A'}
-                            </AvatarFallback>
-                        </Avatar>
-                    </Link>
-                    <div className="flex-1 min-w-0">
-                        <Link
-                            href={`/profile?username=${article.author?.username}`}
-                            className="text-sm font-black uppercase tracking-tight hover:text-primary transition-colors block truncate"
-                        >
-                            {article.author?.name}
-                        </Link>
-                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground/35">
-                            @{article.author?.username}
-                        </span>
-                    </div>
-                </div>
-
-                {/* Body */}
-                <div className="text-base leading-[1.85] text-foreground/80 whitespace-pre-wrap mb-10 font-medium">
-                    {article.body}
-                </div>
-
-                {/* Reactions */}
-                <div className="flex items-center gap-6 py-6 border-t border-border/8 mb-10">
-                    <button className="flex items-center gap-2 text-muted-foreground/30 hover:text-rose-500 transition-colors group">
-                        <Heart className="h-5 w-5" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.15em]">
-                            0
-                        </span>
-                    </button>
-                    <button className="flex items-center gap-2 text-muted-foreground/30 hover:text-primary transition-colors group">
-                        <MessageSquare className="h-5 w-5" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.15em]">
-                            0
-                        </span>
-                    </button>
-                    <div className="ml-auto flex items-center gap-2">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="rounded-2xl h-8 w-8 text-muted-foreground/30 hover:text-primary"
-                        >
-                            <Share className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="rounded-2xl h-8 w-8 text-muted-foreground/30 hover:text-primary"
-                        >
-                            <Bookmark className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </div>
-
-                {/* Comments */}
-                <div id="comments" className="space-y-6">
-                    <div className="flex items-center gap-3">
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">
-                            Responses
-                        </h3>
-                        <div className="flex-1 h-px bg-border/10" />
-                    </div>
-                    <CommentList articleId={id} />
-                </div>
-            </article>
-        </div>
+            </div>
+        </MainLayout>
     );
 }
