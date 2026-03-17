@@ -25,6 +25,7 @@ export class PostRepository {
                         name: true,
                         username: true,
                         avatar: true,
+                        isVerified: true,
                     },
                 },
                 _count: {
@@ -63,6 +64,7 @@ export class PostRepository {
                         name: true,
                         username: true,
                         avatar: true,
+                        isVerified: true,
                     },
                 },
                 _count: {
@@ -110,9 +112,11 @@ export class PostRepository {
         });
     }
 
-    async findByAuthorId(authorId: number, currentUserId?: number) {
+    async findByAuthorId(authorId: number, limit: number, cursor?: number, currentUserId?: number) {
         return this.post.findMany({
             where: { authorId },
+            take: limit,
+            ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
             include: {
                 author: {
                     select: {
@@ -120,6 +124,47 @@ export class PostRepository {
                         name: true,
                         username: true,
                         avatar: true,
+                        isVerified: true,
+                    },
+                },
+                _count: {
+                    select: {
+                        likes: true,
+                        comments: true,
+                        bookmarks: true,
+                    },
+                },
+                ...(currentUserId
+                    ? {
+                          likes: {
+                              where: { userId: currentUserId },
+                              select: { id: true },
+                          },
+                          bookmarks: {
+                              where: { userId: currentUserId },
+                              select: { id: true },
+                          },
+                      }
+                    : {}),
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
+        });
+    }
+
+    async getPostsByRange(limit: number, cursor?: number, offset?: number, currentUserId?: number) {
+        return this.post.findMany({
+            take: limit,
+            ...(cursor ? { skip: 1, cursor: { id: cursor } } : offset ? { skip: offset } : {}),
+            include: {
+                author: {
+                    select: {
+                        id: true,
+                        name: true,
+                        username: true,
+                        avatar: true,
+                        isVerified: true,
                     },
                 },
                 _count: {

@@ -74,8 +74,20 @@ export class ArticleService {
         return deletedArticle;
     }
 
-    async getUserArticles(userId: number) {
-        return this.articleRepository.findByUserId(userId);
+    async getUserArticles(userId: number, limit: number, cursor?: number, currentUserId?: number) {
+        const articles = await this.articleRepository.findByUserId(
+            userId,
+            limit,
+            cursor,
+            currentUserId,
+        );
+        return articles.map((article: any) => ({
+            ...article,
+            liked: currentUserId ? (article as any).likes?.length > 0 : false,
+            bookmarked: currentUserId ? (article as any).bookmarks?.length > 0 : false,
+            likes: undefined,
+            bookmarks: undefined,
+        }));
     }
 
     async toggleLike(userId: number, articleId: number) {
@@ -113,5 +125,26 @@ export class ArticleService {
             throw new ForbiddenError('Your account is banned. You cannot perform this action.');
         }
         return user;
+    }
+
+    async getArticlesByRange(
+        limit: number,
+        cursor?: number,
+        offset?: number,
+        currentUserId?: number,
+    ) {
+        const articles = await this.articleRepository.getArticlesByRange(
+            limit,
+            cursor,
+            offset,
+            currentUserId,
+        );
+        return articles.map((article: any) => ({
+            ...article,
+            liked: currentUserId ? (article as any).likes?.length > 0 : false,
+            bookmarked: currentUserId ? (article as any).bookmarks?.length > 0 : false,
+            likes: undefined,
+            bookmarks: undefined,
+        }));
     }
 }

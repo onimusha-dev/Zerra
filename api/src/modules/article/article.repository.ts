@@ -25,11 +25,57 @@ export class ArticleRepository {
                         name: true,
                         username: true,
                         avatar: true,
+                        isVerified: true,
                     },
                 },
             },
             orderBy: {
                 id: 'desc',
+            },
+        });
+    }
+
+    async getArticlesByRange(
+        limit: number,
+        cursor?: number,
+        offset?: number,
+        currentUserId?: number,
+    ) {
+        return this.article.findMany({
+            take: limit,
+            ...(cursor ? { skip: 1, cursor: { id: cursor } } : offset ? { skip: offset } : {}),
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        username: true,
+                        avatar: true,
+                        isVerified: true,
+                    },
+                },
+                _count: {
+                    select: {
+                        likes: true,
+                        comments: true,
+                        bookmarks: true,
+                    },
+                },
+                ...(currentUserId
+                    ? {
+                          likes: {
+                              where: { userId: currentUserId },
+                              select: { id: true },
+                          },
+                          bookmarks: {
+                              where: { userId: currentUserId },
+                              select: { id: true },
+                          },
+                      }
+                    : {}),
+            },
+            orderBy: {
+                createdAt: 'desc',
             },
         });
     }
@@ -44,6 +90,7 @@ export class ArticleRepository {
                         name: true,
                         username: true,
                         avatar: true,
+                        isVerified: true,
                     },
                 },
             },
@@ -72,11 +119,43 @@ export class ArticleRepository {
         });
     }
 
-    async findByUserId(userId: number) {
+    async findByUserId(userId: number, limit: number, cursor?: number, currentUserId?: number) {
         return this.article.findMany({
             where: { userId },
+            take: limit,
+            ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        username: true,
+                        avatar: true,
+                        isVerified: true,
+                    },
+                },
+                _count: {
+                    select: {
+                        likes: true,
+                        comments: true,
+                        bookmarks: true,
+                    },
+                },
+                ...(currentUserId
+                    ? {
+                          likes: {
+                              where: { userId: currentUserId },
+                              select: { id: true },
+                          },
+                          bookmarks: {
+                              where: { userId: currentUserId },
+                              select: { id: true },
+                          },
+                      }
+                    : {}),
+            },
             orderBy: {
-                id: 'desc',
+                createdAt: 'desc',
             },
         });
     }

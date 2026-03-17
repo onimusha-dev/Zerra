@@ -149,4 +149,29 @@ export class UserController {
         const updatedUser = await this.userService.updateBanner(user.id, banner);
         return c.json(ApiResponse.success(updatedUser, 'Banner updated successfully'), 200);
     };
+
+    getUserBookmarks = async (c: any) => {
+        const user = c.get('user');
+        const bookmarks = await this.userService.getUserBookmarks(user.id);
+        return c.json(ApiResponse.success(bookmarks), 200);
+    };
+
+    getUserLikes = async (c: any) => {
+        const user = c.get('user');
+        const { id, username } = c.req.param();
+        const { limit, cursor } = c.req.valid('query');
+
+        let targetUserId: number;
+        if (id) {
+            targetUserId = parseInt(id);
+        } else if (username) {
+            const profile = await this.userService.getProfileByUsername(username);
+            targetUserId = profile.id;
+        } else {
+            targetUserId = user.id;
+        }
+
+        const likes = await this.userService.getUserLikes(targetUserId, limit, cursor, user?.id);
+        return c.json(ApiResponse.success(likes), 200);
+    };
 }

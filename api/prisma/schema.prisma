@@ -26,28 +26,28 @@ model User {
   isVerified       Boolean           @default(false) @map("is_verified")
   isUserBanned     Boolean           @default(false) @map("is_user_banned")
   articles         Article[]
-  posts            Post[]
-  comments         Comment[]
-  likes            Like[]
   bookmarks        Bookmark[]
-  searches         Search[]
-  followers        Follow[]          @relation("followers")
-  following        Follow[]          @relation("following")
+  comments         Comment[]
   fernChatSessions FernChatSession[]
+  following        Follow[]          @relation("following")
+  followers        Follow[]          @relation("followers")
+  likes            Like[]
+  posts            Post[]
+  searches         Search[]
 }
 
 model Post {
   id        Int        @id @default(autoincrement())
-  content   String     @db.VarChar(500)
+  content   String
   media     String?    @db.VarChar(2048)
   published Boolean    @default(false)
   authorId  Int
-  author    User       @relation(fields: [authorId], references: [id])
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
+  bookmarks Bookmark[]
   comments  Comment[]
   likes     Like[]
-  bookmarks Bookmark[]
+  author    User       @relation(fields: [authorId], references: [id])
 }
 
 model Article {
@@ -58,43 +58,43 @@ model Article {
   enableComments Boolean    @default(true) @map("enable_comments")
   banner         String?    @db.VarChar(2048)
   userId         Int?
-  user           User?      @relation(fields: [userId], references: [id])
   createdAt      DateTime   @default(now()) @map("created_at")
   updatedAt      DateTime   @default(now()) @updatedAt @map("updated_at")
+  user           User?      @relation(fields: [userId], references: [id])
+  bookmarks      Bookmark[]
   comments       Comment[]
   likes          Like[]
-  bookmarks      Bookmark[]
 }
 
 model Comment {
   id        Int        @id @default(autoincrement())
   content   String     @db.VarChar(500)
   authorId  Int
-  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
   postId    Int?
   articleId Int?
-  article   Article?   @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  post      Post?      @relation(fields: [postId], references: [id], onDelete: Cascade)
   parentId  Int?       @map("parent_id")
-  parent    Comment?   @relation("NestedComments", fields: [parentId], references: [id], onDelete: Cascade)
-  replies   Comment[]  @relation("NestedComments")
-  likes     Like[]
-  bookmarks Bookmark[]
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
+  bookmarks Bookmark[]
+  article   Article?   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent    Comment?   @relation("NestedComments", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[]  @relation("NestedComments")
+  post      Post?      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  likes     Like[]
 }
 
 model Like {
   id        Int      @id @default(autoincrement())
   userId    Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   postId    Int?
-  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
   articleId Int?
-  article   Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
   commentId Int?
-  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now()) @map("created_at")
+  article   Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
   @@unique([userId, articleId])
@@ -104,14 +104,14 @@ model Like {
 model Bookmark {
   id        Int      @id @default(autoincrement())
   userId    Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   postId    Int?
-  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
   articleId Int?
-  article   Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
   commentId Int?
-  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now()) @map("created_at")
+  article   Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
   @@unique([userId, articleId])
@@ -121,17 +121,17 @@ model Bookmark {
 model Search {
   id        Int      @id @default(autoincrement())
   userId    Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   query     String   @db.VarChar(255)
   createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Follow {
   followerId  Int      @map("follower_id")
-  follower    User     @relation("following", fields: [followerId], references: [id], onDelete: Cascade)
   followingId Int      @map("following_id")
-  following   User     @relation("followers", fields: [followingId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now()) @map("created_at")
+  follower    User     @relation("following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("followers", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@id([followerId, followingId])
 }
@@ -139,11 +139,11 @@ model Follow {
 model FernChatSession {
   id               String            @id @default(uuid())
   userId           Int
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   name             String            @db.VarChar(100)
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")
   fernChatMessages FernChatMessage[]
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -151,11 +151,10 @@ model FernChatSession {
 model FernChatMessage {
   id                 String          @id @default(uuid())
   sessionId          String
-  session            FernChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   role               String          @db.VarChar(50)
-  userPrompt         String          @map("user_prompt") @db.Text
-  aiResponse         String          @map("ai_response") @db.Text
-  reasoning          String?         @map("ai_reasoning") @db.Text
+  userPrompt         String          @map("user_prompt")
+  aiResponse         String          @map("ai_response")
+  reasoning          String?         @map("ai_reasoning")
   promptTokens       Int?            @map("prompt_tokens")
   completionTokens   Int?            @map("completion_tokens")
   totalTokens        Int?            @map("total_tokens")
@@ -167,6 +166,7 @@ model FernChatMessage {
   evalDuration       BigInt?         @map("eval_duration")
   metadata           Json            @default("{}")
   createdAt          DateTime        @default(now()) @map("created_at")
+  session            FernChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId])
 }

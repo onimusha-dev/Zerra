@@ -1,5 +1,5 @@
 import { createAgent } from 'langchain';
-import { OllamaModels } from '@shared/types/types';
+import { GeminiModels } from '@shared/types/types';
 import {
     executeCommand,
     getCurrentDateAndTime,
@@ -7,55 +7,62 @@ import {
     getUserLocation,
     getWeather,
 } from './tools';
-import { ChatOllama } from '@langchain/ollama';
+import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { LoggerService } from '@platform/logger/logger.service';
-import { BaseChatModel } from '@langchain/core/language_models/chat_models';
-import { AIMessageChunk } from '@langchain/core/messages';
+import { ConfigService } from '@platform/config/config.service';
+import { fern } from '@shared/constants/ai';
 
-export class OllamaService {
-    private static instance: OllamaService | null = null;
+export class GeminiService {
+    private static instance: GeminiService | null = null;
     private static logger: LoggerService;
+    private config: ConfigService;
 
     private readonly personas = {
         assistant: 'You are a helpful and concise AI assistant.',
         weatherman: 'You are an expert weather forecaster who speaks in puns.',
         developer: 'You are an expert senior software engineer. Provide clean, documented code.',
-        fern: 'You are Fern, a charming, warm, and cute anime girl character. You are very polite and helpful, but also a little bit mischievous, playful, and subtly teasing (naughty but absolutely not explicit or inappropriate). You speak enthusiastically and endearingly.',
+        fern,
     };
 
-    private constructor() {}
-
-    static getInstance(logger: LoggerService): OllamaService {
-        if (!OllamaService.instance) {
-            OllamaService.instance = new OllamaService();
-            OllamaService.logger = logger;
-        }
-        return OllamaService.instance;
+    private constructor(config: ConfigService) {
+        this.config = config;
     }
 
-    private getModel(model: OllamaModels = OllamaModels.QWEN3, temperature = 0.7): ChatOllama {
-        return new ChatOllama({
+    static getInstance(logger: LoggerService, config: ConfigService): GeminiService {
+        if (!GeminiService.instance) {
+            GeminiService.instance = new GeminiService(config);
+            GeminiService.logger = logger;
+        }
+        return GeminiService.instance;
+    }
+
+    private getModel(
+        model: GeminiModels = GeminiModels.GEMINI_1_5_FLASH,
+        temperature = 0.7,
+    ): ChatGoogleGenerativeAI {
+        return new ChatGoogleGenerativeAI({
             model: model,
             temperature: temperature,
+            apiKey: this.config.geminiApiKey || '',
             maxRetries: 2,
         });
     }
 
     async chat(
         prompt: string,
-        model: OllamaModels = OllamaModels.LFM2_5_THINKING,
+        model: GeminiModels = GeminiModels.GEMINI_1_5_FLASH,
     ): Promise<string> {
         try {
             const llm = this.getModel(model);
             const response = await llm.invoke(prompt);
             return response.content as string;
         } catch (error) {
-            OllamaService.logger.error('Ollama Chat Error', { error });
+            GeminiService.logger.error('Gemini Chat Error', { error });
             throw error;
         }
     }
 
-    async *streamChat(prompt: string, model: OllamaModels = OllamaModels.LFM2_5_THINKING) {
+    async *streamChat(prompt: string, model: GeminiModels = GeminiModels.GEMINI_1_5_FLASH) {
         const llm = this.getModel(model);
         const stream = await llm.stream(prompt);
 
@@ -65,13 +72,13 @@ export class OllamaService {
     }
 
     async think(prompt: string): Promise<string> {
-        OllamaService.logger.info('Starting reasoning task...');
-        return this.chat(prompt, OllamaModels.LFM2_5_THINKING);
+        GeminiService.logger.info('Starting reasoning task...');
+        return this.chat(prompt, GeminiModels.GEMINI_2_0_FLASH); // Using 2.0 flash as a placeholder for reasoning capabilities
     }
 
     async runAgent(
         prompt: string,
-        model: OllamaModels = OllamaModels.LFM2_5_THINKING,
+        model: GeminiModels | string = GeminiModels.GEMINI_1_5_FLASH,
         reasoning: boolean = false,
         persona: keyof typeof this.personas = 'assistant',
         chatHistory: { role: string; content: string }[] = [],
@@ -81,10 +88,10 @@ export class OllamaService {
                 model: model,
                 temperature: 0,
                 maxRetries: 2,
-                reasoning: reasoning,
+                apiKey: this.config.geminiApiKey || '',
             };
             const agent = createAgent({
-                model: new ChatOllama(config),
+                model: new ChatGoogleGenerativeAI(config),
                 tools: [
                     getWeather,
                     getGoogleSearch,
@@ -104,13 +111,14 @@ export class OllamaService {
 
             return result;
         } catch (error) {
-            OllamaService.logger.error('Agent Execution Error', { error });
+            GeminiService.logger.error('Agent Execution Error', { error });
             throw error;
         }
     }
+
     async streamAgent(
         prompt: string,
-        model: OllamaModels = OllamaModels.LFM2_5_THINKING,
+        model: GeminiModels | string = GeminiModels.GEMINI_1_5_FLASH,
         reasoning: boolean = false,
         persona: keyof typeof this.personas = 'assistant',
         chatHistory: { role: string; content: string }[] = [],
@@ -120,10 +128,10 @@ export class OllamaService {
                 model: model,
                 temperature: 0,
                 maxRetries: 2,
-                reasoning: reasoning,
+                apiKey: this.config.geminiApiKey || '',
             };
             const agent = createAgent({
-                model: new ChatOllama(config),
+                model: new ChatGoogleGenerativeAI(config),
                 tools: [
                     getWeather,
                     getGoogleSearch,
@@ -144,10 +152,11 @@ export class OllamaService {
                 { version: 'v2' },
             );
         } catch (error) {
-            OllamaService.logger.error('Agent Stream Error', { error });
+            GeminiService.logger.error('Agent Stream Error', { error });
             throw error;
         }
     }
+
     async healthCheck(): Promise<boolean> {
         try {
             await this.chat('ping');

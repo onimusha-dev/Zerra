@@ -53,7 +53,8 @@ export class PostController {
     getAuthorPosts = async (c: TypedContext<any, AuthorIdSchema>) => {
         const user = c.get('user');
         const { authorId } = c.req.valid('param');
-        const posts = await this.postService.getAuthorPosts(authorId, user?.id);
+        const { limit, cursor } = c.req.valid('query');
+        const posts = await this.postService.getAuthorPosts(authorId, limit, cursor, user?.id);
         return c.json(ApiResponse.success(posts), 200);
     };
 
@@ -69,5 +70,16 @@ export class PostController {
         const { id } = c.req.valid('param');
         const result = await this.postService.toggleBookmark(user.id, id);
         return c.json(ApiResponse.success(result, 'Post bookmark toggled'), 200);
+    };
+
+    /**
+     * @TODO - later we will move this to the feeds generator
+     *         for now we will just serve all the people all together
+     */
+    getForYouPosts = async (c: TypedContext<any>) => {
+        const user = c.get('user');
+        const { limit, cursor, offset } = c.req.valid('query');
+        const posts = await this.postService.getPostsByRange(limit, cursor, offset, user?.id);
+        return c.json(ApiResponse.success(posts), 200);
     };
 }

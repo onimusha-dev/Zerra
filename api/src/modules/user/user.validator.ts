@@ -62,3 +62,11 @@ export const bannerUpdateSchema = z.object({
     banner: z.any(),
 });
 export type BannerUpdateSchema = z.infer<typeof bannerUpdateSchema>;
+
+export const paginationQuerySchema = z.object({
+    limit: z.coerce.number().int().positive().default(10),
+    cursor: z.coerce.number().int().positive().optional(),
+    offset: z.coerce.number().int().nonnegative().optional(),
+});
+
+export type PaginationQuerySchema = z.infer<typeof paginationQuerySchema>;

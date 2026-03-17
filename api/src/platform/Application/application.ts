@@ -33,7 +33,7 @@ import { UserRepository } from '@modules/user/user.repository';
 import { MediaProcessor } from '@platform/media/media.processor';
 import { StorageService } from '@platform/storage/storage.service';
 import { MediaService } from '@platform/media/media.service';
-import { OllamaService } from '@platform/ai';
+import { OllamaService, GeminiService } from '@platform/ai';
 import { FernService } from '@modules/fern/fern.service';
 import { FernRepository } from '@modules/fern/fern.repository';
 import { FernController } from '@modules/fern';
@@ -52,6 +52,7 @@ export class Application {
     private storageService!: StorageService;
     private mediaService!: MediaService;
     private ollamaService!: OllamaService;
+    private geminiService!: GeminiService;
     private httpServer!: HttpServer;
 
     static getInstance(): Application {
@@ -78,7 +79,7 @@ export class Application {
             await this.initializeDatabase();
             await this.initialiseCache();
             await this.initializeMedia();
-            await this.initialiseOllama();
+            await this.initializeAI();
 
             // 5: Setup the HTTP Server
             await this.initializeHttpServer();
@@ -140,10 +141,10 @@ export class Application {
         this.logger.info('Media infrastructure initialized');
     }
 
-    private async initialiseOllama(): Promise<void> {
+    private async initializeAI(): Promise<void> {
+        this.geminiService = GeminiService.getInstance(this.logger, this.config);
         this.ollamaService = OllamaService.getInstance(this.logger);
-        // container.register(ServiceKeys.OLLAMA, this.ollamaService);
-        this.logger.info('Ollama initialized');
+        this.logger.info('AI Services initialized');
     }
 
     private async initializeHttpServer(): Promise<void> {
@@ -242,7 +243,12 @@ export class Application {
         const commentController = new CommentController(commentService);
 
         const fernRepository = new FernRepository(this.database, this.logger);
-        const fernService = new FernService(this.logger, fernRepository, this.ollamaService);
+        const fernService = new FernService(
+            this.logger,
+            fernRepository,
+            this.ollamaService,
+            this.geminiService,
+        );
         const fernController = new FernController(fernService);
 
         const authMiddleware = new AuthMiddleware(this.config, this.logger, authService);

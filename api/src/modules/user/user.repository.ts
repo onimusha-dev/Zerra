@@ -19,6 +19,9 @@ export class UserRepository {
                 select: {
                     followers: true,
                     following: true,
+                    likes: true,
+                    posts: true,
+                    articles: true,
                 },
             },
         };
@@ -70,6 +73,7 @@ export class UserRepository {
                         username: true,
                         avatar: true,
                         bio: true,
+                        isVerified: true,
                     },
                 },
             },
@@ -87,6 +91,7 @@ export class UserRepository {
                         username: true,
                         avatar: true,
                         bio: true,
+                        isVerified: true,
                     },
                 },
             },
@@ -159,6 +164,130 @@ export class UserRepository {
     async deleteUser(id: number) {
         return this.user.delete({
             where: { id },
+        });
+    }
+
+    async getBookmarks(userId: number) {
+        return this.db.prisma.bookmark.findMany({
+            where: { userId },
+            include: {
+                post: {
+                    include: {
+                        author: {
+                            select: {
+                                id: true,
+                                name: true,
+                                username: true,
+                                avatar: true,
+                                isVerified: true,
+                            },
+                        },
+                        _count: {
+                            select: {
+                                comments: true,
+                                likes: true,
+                                bookmarks: true,
+                            },
+                        },
+                    },
+                },
+                article: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                username: true,
+                                avatar: true,
+                                isVerified: true,
+                            },
+                        },
+                        _count: {
+                            select: {
+                                comments: true,
+                                likes: true,
+                                bookmarks: true,
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+
+    async getLikes(userId: number, limit: number, cursor?: number, currentUserId?: number) {
+        return this.db.prisma.like.findMany({
+            where: { userId },
+            take: limit,
+            ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+            include: {
+                post: {
+                    include: {
+                        author: {
+                            select: {
+                                id: true,
+                                name: true,
+                                username: true,
+                                avatar: true,
+                                isVerified: true,
+                            },
+                        },
+                        _count: {
+                            select: {
+                                comments: true,
+                                likes: true,
+                                bookmarks: true,
+                            },
+                        },
+                        ...(currentUserId
+                            ? {
+                                  likes: {
+                                      where: { userId: currentUserId },
+                                      select: { id: true },
+                                  },
+                                  bookmarks: {
+                                      where: { userId: currentUserId },
+                                      select: { id: true },
+                                  },
+                              }
+                            : {}),
+                    },
+                },
+                article: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                username: true,
+                                avatar: true,
+                                isVerified: true,
+                            },
+                        },
+                        _count: {
+                            select: {
+                                comments: true,
+                                likes: true,
+                                bookmarks: true,
+                            },
+                        },
+                        ...(currentUserId
+                            ? {
+                                  likes: {
+                                      where: { userId: currentUserId },
+                                      select: { id: true },
+                                  },
+                                  bookmarks: {
+                                      where: { userId: currentUserId },
+                                      select: { id: true },
+                                  },
+                              }
+                            : {}),
+                    },
+                },
+            },
+            orderBy: { createdAt: 'desc' },
         });
     }
 }

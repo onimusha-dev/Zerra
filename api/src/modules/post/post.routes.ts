@@ -2,7 +2,13 @@ import { Hono } from 'hono';
 import { AppEnv } from '@platform/http/types';
 import { PostController } from './post.controller';
 import { AuthMiddleware } from '@platform/http/middleware';
-import { createPostSchema, updatePostSchema, postIdSchema, authorIdSchema } from './post.validator';
+import {
+    createPostSchema,
+    updatePostSchema,
+    postIdSchema,
+    authorIdSchema,
+    paginationQuerySchema,
+} from './post.validator';
 import { validate } from '@shared/utils';
 
 /**
@@ -19,11 +25,18 @@ export function createPostRoutes(
     const optionalSession = authMiddleware.optionalUserSession;
 
     router.get('/', optionalSession, controller.getAllPosts);
+    router.get(
+        '/for-you',
+        optionalSession,
+        validate('query', paginationQuerySchema),
+        controller.getForYouPosts,
+    );
     router.get('/:id', optionalSession, validate('param', postIdSchema), controller.getPost);
     router.get(
         '/author/:authorId',
         optionalSession,
         validate('param', authorIdSchema),
+        validate('query', paginationQuerySchema),
         controller.getAuthorPosts,
     );
 

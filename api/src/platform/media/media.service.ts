@@ -99,10 +99,13 @@ export class MediaService {
      */
     resolveUrl(relativePath: string | null): string | null {
         if (!relativePath) return null;
-        if (relativePath.startsWith('http')) return relativePath;
+        if (relativePath.startsWith('http') || relativePath.startsWith('/')) return relativePath;
+
+        if (this.config.isDevelopment) {
+            return `/uploads/${relativePath}`;
+        }
 
         const baseUrl = this.config.appUrl;
-        // Ensure no double slashes
         const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
         return `${cleanBase}/uploads/${relativePath}`;
     }

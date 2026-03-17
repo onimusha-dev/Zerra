@@ -7,6 +7,7 @@ import {
     updateArticleSchema,
     articleIdSchema,
     userIdSchema,
+    paginationQuerySchema,
 } from './article.validator';
 import { validate } from '@shared/utils';
 
@@ -23,8 +24,20 @@ export function createArticleRoutes(
     const sessionMiddleware = authMiddleware.validateUserSession;
 
     router.get('/', controller.getAllArticles);
+    router.get(
+        '/for-you',
+        authMiddleware.optionalUserSession,
+        validate('query', paginationQuerySchema),
+        controller.getForYouArticles,
+    );
     router.get('/:id', validate('param', articleIdSchema), controller.getArticle);
-    router.get('/user/:userId', validate('param', userIdSchema), controller.getUserArticles);
+    router.get(
+        '/user/:userId',
+        authMiddleware.optionalUserSession,
+        validate('param', userIdSchema),
+        validate('query', paginationQuerySchema),
+        controller.getUserArticles,
+    );
 
     router.post(
         '/',
