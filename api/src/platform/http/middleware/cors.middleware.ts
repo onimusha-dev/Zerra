@@ -4,20 +4,27 @@ import { ConfigService } from '@platform/config';
 export const createCorsMiddleware = (config: ConfigService) => {
     return cors({
         origin: (origin) => {
-            // In development, we can be more permissive if explicitly requested,
-            // but usually we want to allow the defined CORS_ORIGIN or the request origin if it matches.
-            if (config.isDevelopment && origin?.startsWith('http://localhost')) {
-                return origin;
+            const allowedOrigins = [
+                'https://zerra-nine.vercel.app',
+                ...config.corsOrigin.split(',').map((o) => o.trim()),
+            ];
+
+            if (config.isDevelopment) {
+                allowedOrigins.push(
+                    'http://localhost:3000',
+                    'http://127.0.0.1:3000',
+                    'http://localhost:5173',
+                    'http://localhost:9000',
+                );
             }
 
-            // Allow defined origin from config
-            const allowedOrigin = config.corsOrigin;
-            if (allowedOrigin === '*' || allowedOrigin === origin) {
-                return allowedOrigin;
-            }
+            if (allowedOrigins.includes('*')) return '*';
+            if (origin && allowedOrigins.includes(origin)) return origin;
 
-            return allowedOrigin;
+            // Default to the first allowed origin if no match but valid
+            return allowedOrigins[0];
         },
+
         allowHeaders: [
             'Content-Type',
             'Authorization',

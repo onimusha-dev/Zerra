@@ -33,7 +33,7 @@ export class HttpServer {
 
     setBaseMiddlewares() {
         this.app.use(createCorsMiddleware(this.config));
-        // this.app.use(createCsrfMiddleware(this.config));
+        this.app.use(createCsrfMiddleware(this.config));
         this.app.use(bodyLimit());
 
         // Creative Static Serving: Serve files from 'uploads' and add a custom header

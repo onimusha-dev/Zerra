@@ -3,14 +3,30 @@ import { ConfigService } from '@platform/config';
 
 export const createCsrfMiddleware = (config: ConfigService) => {
     return csrf({
-        origin: (origin) => {
-            // In development, we allow requests without an origin (like Postman)
+        origin: (origin, c) => {
             if (config.isDevelopment && !origin) return true;
 
-            // In production or if origin exists, we want to be more strict
-            // Usually, Hono CSRF handles matching automatically if we don't provide this,
-            // but providing a custom function gives us control.
-            return true;
+            const userAgent = c.req.header('User-Agent');
+            if (config.isDevelopment && userAgent?.includes('Postman')) return true;
+
+            if (config.isDevelopment && config.corsOrigin === '*') return true;
+
+            const allowedOrigins = [
+                'https://zerra-nine.vercel.app',
+                config.appUrl,
+                ...config.corsOrigin.split(',').map((o) => o.trim()),
+            ];
+
+            if (config.isDevelopment) {
+                allowedOrigins.push(
+                    'http://localhost:3000',
+                    'http://127.0.0.1:3000',
+                    'http://localhost:5173',
+                    'http://localhost:9000',
+                );
+            }
+
+            return allowedOrigins.includes(origin);
         },
     });
 };
