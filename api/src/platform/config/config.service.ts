@@ -14,6 +14,9 @@ const configSchema = z.object({
     REDIS_HOST: z.string().optional().default('localhost'),
     REDIS_PORT: z.string().optional().default('6379').transform(Number),
     REDIS_PASSWORD: z.string().optional(),
+    REDIS_URL: z.string().optional(),
+    UPSTASH_REDIS_REST_URL: z.string().optional(),
+    UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
     APP_URL: z.string().optional().default('http://localhost:9000'),
 
     // Authentication Configuration
@@ -124,6 +127,18 @@ export class ConfigService {
 
     get redis_password(): string | undefined {
         return this.config.REDIS_PASSWORD;
+    }
+
+    get redis_url(): string | undefined {
+        return this.config.REDIS_URL;
+    }
+
+    get upstash_redis_rest_url(): string | undefined {
+        return this.config.UPSTASH_REDIS_REST_URL;
+    }
+
+    get upstash_redis_rest_token(): string | undefined {
+        return this.config.UPSTASH_REDIS_REST_TOKEN;
     }
 
     get access_token_secret(): string {
