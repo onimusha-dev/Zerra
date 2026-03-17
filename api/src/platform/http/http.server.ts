@@ -67,13 +67,19 @@ export class HttpServer {
     }
 
     async start(): Promise<void> {
-        this.server = serve({
-            fetch: this.app.fetch,
-            port: this.config.port,
-        });
+        this.server = serve(
+            {
+                fetch: this.app.fetch,
+                hostname: '0.0.0.0',
+                port: this.config.port,
+            },
+            (info) => {
+                this.logger.info(`Server is running on http://0.0.0.0:${info.port}`);
+            },
+        );
 
         this.server.on('error', (err: Error) => {
-            console.log(err);
+            this.logger.error('Server error', { error: err });
         });
     }
 

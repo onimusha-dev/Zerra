@@ -28,7 +28,18 @@ export class DatabaseService {
 
     private constructor(private readonly logger: LoggerService) {
         const connectionString = `${process.env.DATABASE_URL}`;
-        const pool = new Pool({ connectionString });
+        // Automatically enable SSL for Supabase/Render/AWS or if explicitly requested via query param
+        const useSSL =
+            connectionString.includes('supabase') ||
+            connectionString.includes('render') ||
+            connectionString.includes('aws') ||
+            connectionString.includes('sslmode=require');
+
+        const pool = new Pool({
+            connectionString,
+            ssl: useSSL ? { rejectUnauthorized: false } : false,
+        });
+
         const adapter = new PrismaPg(pool);
         this.prismaClient = new PrismaClient({
             adapter,
