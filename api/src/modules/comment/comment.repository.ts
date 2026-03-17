@@ -26,6 +26,7 @@ export class CommentRepository {
                         name: true,
                         username: true,
                         avatar: true,
+                        isVerified: true,
                     },
                 },
                 _count: {
@@ -65,7 +66,13 @@ export class CommentRepository {
             where: { postId, parentId: null },
             include: {
                 author: {
-                    select: { id: true, name: true, username: true, avatar: true },
+                    select: {
+                        id: true,
+                        name: true,
+                        username: true,
+                        avatar: true,
+                        isVerified: true,
+                    },
                 },
                 _count: { select: { likes: true, replies: true } },
             },
@@ -78,7 +85,13 @@ export class CommentRepository {
             where: { articleId, parentId: null },
             include: {
                 author: {
-                    select: { id: true, name: true, username: true, avatar: true },
+                    select: {
+                        id: true,
+                        name: true,
+                        username: true,
+                        avatar: true,
+                        isVerified: true,
+                    },
                 },
                 _count: { select: { likes: true, replies: true } },
             },
@@ -91,7 +104,13 @@ export class CommentRepository {
             where: { parentId },
             include: {
                 author: {
-                    select: { id: true, name: true, username: true, avatar: true },
+                    select: {
+                        id: true,
+                        name: true,
+                        username: true,
+                        avatar: true,
+                        isVerified: true,
+                    },
                 },
                 _count: { select: { likes: true, replies: true } },
             },

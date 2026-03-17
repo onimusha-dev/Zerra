@@ -1,10 +1,7 @@
 import * as z from 'zod';
 
 export const createPostSchema = z.object({
-    content: z
-        .string()
-        .min(1, 'Content cannot be empty')
-        .max(500, 'Content cannot exceed 500 characters'),
+    content: z.string().min(1, 'Content cannot be empty').max(100000, 'Content is too long'),
     published: z
         .preprocess((val) => val === 'true' || val === true, z.boolean())
         .optional()
@@ -16,10 +13,7 @@ export type CreatePostSchema = z.infer<typeof createPostSchema>;
 
 export const updatePostSchema = z
     .object({
-        content: z
-            .string()
-            .min(1, 'Content cannot be empty')
-            .max(500, 'Content cannot exceed 500 characters'),
+        content: z.string().min(1, 'Content cannot be empty').max(100000, 'Content is too long'),
         published: z.preprocess((val) => val === 'true' || val === true, z.boolean()),
         media: z.any(),
     })
@@ -38,3 +32,11 @@ export const authorIdSchema = z.object({
 });
 
 export type AuthorIdSchema = z.infer<typeof authorIdSchema>;
+
+export const paginationQuerySchema = z.object({
+    limit: z.coerce.number().int().positive().default(10),
+    cursor: z.coerce.number().int().positive().optional(),
+    offset: z.coerce.number().int().nonnegative().optional(),
+});
+
+export type PaginationQuerySchema = z.infer<typeof paginationQuerySchema>;

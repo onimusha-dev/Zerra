@@ -1,3 +1,4 @@
+import { streamSSE } from 'hono/streaming';
 import { TypedContext } from '@platform/http/types';
 import { ChatIdSchema, PromptSchema, RenameChatSchema } from './fern.validator';
 import { ApiResponse } from '@shared/json';
@@ -12,12 +13,14 @@ export class FernController {
 
     sendPrompt = async (c: TypedContext<PromptSchema, ChatIdSchema, any, any>) => {
         const body = c.req.valid('json');
-        const { chatId } = c.req.valid('query');
+        const { chatId } = c.req.valid('param');
         const user = c.get('user');
 
         const isTemporary = c.req.query('isTemporary') === 'true';
-        const result = await this.fernService.sendMessage(body, user.id, chatId, isTemporary);
-        return c.json(ApiResponse.success(result, 'Message sent successfully'), 200);
+
+        return streamSSE(c, async (stream) => {
+            await this.fernService.streamMessage(body, user.id, chatId, isTemporary, stream);
+        });
     };
 
     getChatMessages = async (c: TypedContext<any, ChatIdSchema, any, any>) => {

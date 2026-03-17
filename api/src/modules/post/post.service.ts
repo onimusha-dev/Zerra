@@ -50,22 +50,36 @@ export class PostService {
     }
 
     async createPost(authorId: number, data: CreatePostSchema, file?: File) {
-        await this.checkAuthorStatus(authorId);
+        const user = await this.checkAuthorStatus(authorId);
 
-        let mediaUrl = data.media;
+        if (!user.isVerified && data.content.length > 500) {
+            throw new ForbiddenError('Unverified users can only post up to 500 characters.');
+        }
+
+        let mediaUrl: string | undefined = undefined;
         if (file) {
             mediaUrl = await this.mediaService.upload(file, 'post');
+        } else if (typeof data.media === 'string' && data.media.trim().length > 0) {
+            mediaUrl = data.media;
         }
-        const post = await this.postRepository.createPost(authorId, {
-            ...data,
-            media: mediaUrl,
-        });
+
+        const postData = {
+            content: data.content,
+            published: data.published ?? false,
+            media: mediaUrl || null,
+        };
+
+        const post = await this.postRepository.createPost(authorId, postData as any);
         this.logger.info('Post created successfully', { postId: post.id, authorId });
         return post;
     }
 
     async updatePost(postId: number, authorId: number, data: UpdatePostSchema) {
-        await this.checkAuthorStatus(authorId);
+        const user = await this.checkAuthorStatus(authorId);
+
+        if (data.content && !user.isVerified && data.content.length > 500) {
+            throw new ForbiddenError('Unverified users can only post up to 500 characters.');
+        }
         const post = await this.postRepository.findById(postId);
         if (!post) {
             throw new NotFoundError('Post');
@@ -73,7 +87,12 @@ export class PostService {
         if (post.authorId !== authorId) {
             throw new AuthenticationError('Unauthorized to update this post');
         }
-        const updatedPost = await this.postRepository.updatePost(postId, data);
+        const updates: any = {};
+        if (data.content !== undefined) updates.content = data.content;
+        if (data.published !== undefined) updates.published = data.published;
+        if (data.media !== undefined) updates.media = data.media;
+
+        const updatedPost = await this.postRepository.updatePost(postId, updates);
         this.logger.info('Post updated successfully', { postId, authorId });
         return updatedPost;
     }
@@ -92,8 +111,13 @@ export class PostService {
         return deletedPost;
     }
 
-    async getAuthorPosts(authorId: number, currentUserId?: number) {
-        const posts = await this.postRepository.findByAuthorId(authorId, currentUserId);
+    async getAuthorPosts(authorId: number, limit: number, cursor?: number, currentUserId?: number) {
+        const posts = await this.postRepository.findByAuthorId(
+            authorId,
+            limit,
+            cursor,
+            currentUserId,
+        );
         return posts.map((post) => ({
             ...post,
             liked: currentUserId ? (post as any).likes?.length > 0 : false,
@@ -127,5 +151,21 @@ export class PostService {
         await this.postRepository.addBookmark(userId, postId);
         this.logger.info('Post bookmark successful', { postId, userId });
         return { bookmarked: true };
+    }
+
+    async getPostsByRange(limit: number, cursor?: number, offset?: number, currentUserId?: number) {
+        const posts = await this.postRepository.getPostsByRange(
+            limit,
+            cursor,
+            offset,
+            currentUserId,
+        );
+        return posts.map((post: any) => ({
+            ...post,
+            liked: currentUserId ? (post as any).likes?.length > 0 : false,
+            bookmarked: currentUserId ? (post as any).bookmarks?.length > 0 : false,
+            likes: undefined,
+            bookmarks: undefined,
+        }));
     }
 }

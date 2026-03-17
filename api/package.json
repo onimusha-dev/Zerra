@@ -4,7 +4,7 @@
     "type": "module",
     "private": true,
     "scripts": {
-        "start": "node src/main.ts",
+        "start": "node dist/main.cjs",
         "dev": "prisma generate && tsx watch src/main.ts",
         "build": "prisma generate && tsdown --config tsdown.config.ts && tsc-alias",
         "db:generate": "prisma generate",
@@ -17,6 +17,7 @@
         "@hono/node-server": "^1.4.1",
         "@hono/zod-validator": "^0.7.6",
         "@langchain/core": "^1.1.32",
+        "@langchain/google-genai": "^2.1.25",
         "@langchain/ollama": "^1.2.6",
         "@prisma/adapter-pg": "^7.4.2",
         "@prisma/client": "^7.4.2",
@@ -48,6 +49,7 @@
         "@types/sharp": "^0.32.0",
         "pino-pretty": "^13.1.3",
         "prisma": "^7.4.2",
+        "tsc-alias": "^1.8.16",
         "tsdown": "^0.20.3",
         "tsx": "^4.7.0",
         "typescript": "^5.3.3"
