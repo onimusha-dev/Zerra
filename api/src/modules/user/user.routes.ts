@@ -11,6 +11,7 @@ import {
     userIdParamSchema,
     avatarUpdateSchema,
     bannerUpdateSchema,
+    paginationQuerySchema,
 } from './user.validator';
 import { validate } from '@shared/utils';
 
@@ -33,6 +34,7 @@ export function createUserRoutes(
 
     /* @WARNING: Don't to add the auth middleware */
     router.get('/me', middleware, controller.getUser);
+    router.get('/me/bookmarks', middleware, controller.getUserBookmarks);
     router.patch('/me', middleware, validate('form', userUpdateSchema), controller.updateUser);
     router.delete('/me', middleware, validate('json', deleteUserSchema), controller.deleteUser);
 
@@ -80,6 +82,19 @@ export function createUserRoutes(
         middleware,
         validate('form', bannerUpdateSchema),
         controller.updateBanner,
+    );
+
+    router.get(
+        '/profile/:id/likes',
+        authMiddleware.optionalUserSession,
+        validate('query', paginationQuerySchema),
+        controller.getUserLikes,
+    );
+    router.get(
+        '/profile/username/:username/likes',
+        authMiddleware.optionalUserSession,
+        validate('query', paginationQuerySchema),
+        controller.getUserLikes,
     );
 
     return router;

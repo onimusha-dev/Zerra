@@ -5,11 +5,16 @@ const modelSchema = z.enum([
     'qwen3:1.7b',
     'qwen3:0.6b',
     'functiongemma:270m',
+    'gemini-1.5-flash',
+    'gemini-1.5-pro',
+    'gemini-2.0-flash',
+    'gemini-2.5-flash',
 ]);
 
 export const promptSchema = z.object({
     prompt: z.string(),
-    model: modelSchema.optional().default('qwen3:0.6b'),
+    model: z.any().optional().default('qwen3:0.6b'), // Used z.any() to not strictly restrict via validation if more models are added later dynamically or keep it as z.enum
+
     webSearch: z
         .preprocess((val) => val === 'true' || val === true, z.boolean())
         .default(false)

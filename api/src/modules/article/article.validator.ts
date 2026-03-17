@@ -44,3 +44,11 @@ export const userIdSchema = z.object({
 
 export type ArticleIdSchema = z.infer<typeof articleIdSchema>;
 export type ArticleUserIdSchema = z.infer<typeof userIdSchema>;
+
+export const paginationQuerySchema = z.object({
+    limit: z.coerce.number().int().positive().default(10),
+    cursor: z.coerce.number().int().positive().optional(),
+    offset: z.coerce.number().int().nonnegative().optional(),
+});
+
+export type PaginationQuerySchema = z.infer<typeof paginationQuerySchema>;

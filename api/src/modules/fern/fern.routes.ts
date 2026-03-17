@@ -16,9 +16,9 @@ export function createFernRoutes(controller: FernController, authMiddleware: Aut
         controller.sendPrompt,
     );
 
-    router.get('/:chatId', validate('param', chatIdSchema), controller.getChatMessages);
-
     router.get('/chats', controller.getAllChats);
+
+    router.get('/:chatId', validate('param', chatIdSchema), controller.getChatMessages);
 
     router.post(
         '/:chatId/rename',

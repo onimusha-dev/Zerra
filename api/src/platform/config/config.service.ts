@@ -14,7 +14,7 @@ const configSchema = z.object({
     REDIS_HOST: z.string().optional().default('localhost'),
     REDIS_PORT: z.string().optional().default('6379').transform(Number),
     REDIS_PASSWORD: z.string().optional(),
-    APP_URL: z.string().optional().default('http://localhost:5500'),
+    APP_URL: z.string().optional().default('http://localhost:9000'),
 
     // Authentication Configuration
     ACCESS_TOKEN_SECRET: z.string(),
@@ -37,6 +37,9 @@ const configSchema = z.object({
     // SMTP Configuration
     SMTPUSER: z.string(),
     SMTPPASS: z.string(),
+
+    // AI Configuration
+    GEMINI_API_KEY: z.string().optional(),
 });
 
 type ConfigSchema = z.infer<typeof configSchema>;
@@ -165,6 +168,10 @@ export class ConfigService {
 
     get smtpPass(): string {
         return this.config.SMTPPASS;
+    }
+
+    get geminiApiKey(): string | undefined {
+        return this.config.GEMINI_API_KEY;
     }
 }
 

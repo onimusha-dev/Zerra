@@ -54,8 +54,10 @@ export class ArticleController {
     };
 
     getUserArticles = async (c: TypedContext<any, ArticleUserIdSchema>) => {
+        const user = c.get('user');
         const { userId } = c.req.valid('param');
-        const articles = await this.articleService.getUserArticles(userId);
+        const { limit, cursor } = c.req.valid('query');
+        const articles = await this.articleService.getUserArticles(userId, limit, cursor, user?.id);
         return c.json(ApiResponse.success(articles), 200);
     };
 
@@ -71,5 +73,21 @@ export class ArticleController {
         const { id } = c.req.valid('param');
         const result = await this.articleService.toggleBookmark(user.id, id);
         return c.json(ApiResponse.success(result, 'Article bookmark toggled'), 200);
+    };
+
+    /**
+     * @TODO - later we will move this to the feeds generator
+     *         for now we will just serve all the people all together
+     */
+    getForYouArticles = async (c: TypedContext<any>) => {
+        const user = c.get('user');
+        const { limit, cursor, offset } = c.req.valid('query');
+        const articles = await this.articleService.getArticlesByRange(
+            limit,
+            cursor,
+            offset,
+            user?.id,
+        );
+        return c.json(ApiResponse.success(articles), 200);
     };
 }

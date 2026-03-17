@@ -22,6 +22,9 @@ export class UserService {
         if (_count) {
             flattenedUser.followersCount = _count.followers;
             flattenedUser.followingCount = _count.following;
+            flattenedUser.likesCount = _count.likes;
+            flattenedUser.postsCount = _count.posts;
+            flattenedUser.articlesCount = _count.articles;
         }
         return flattenedUser;
     }
@@ -246,5 +249,77 @@ export class UserService {
     async getFollowing(userId: number) {
         const following = await this.userRepository.getFollowing(userId);
         return following.map((f) => f.following);
+    }
+
+    async getUserBookmarks(userId: number) {
+        const bookmarks = await this.userRepository.getBookmarks(userId);
+        return bookmarks
+            .map((b) => {
+                if (b.post) {
+                    return {
+                        type: 'post',
+                        data: {
+                            ...b.post,
+                            bookmarked: true,
+                            liked: false, // Default or fetch if needed
+                        },
+                    };
+                }
+                if (b.article) {
+                    return {
+                        type: 'article',
+                        data: {
+                            ...b.article,
+                            bookmarked: true,
+                            liked: false,
+                        },
+                    };
+                }
+                return null;
+            })
+            .filter(Boolean);
+    }
+
+    async getUserLikes(userId: number, limit: number, cursor?: number, currentUserId?: number) {
+        const likes = await this.userRepository.getLikes(userId, limit, cursor, currentUserId);
+        return likes
+            .map((l) => {
+                if (l.post) {
+                    return {
+                        likeId: l.id,
+                        type: 'post',
+                        data: {
+                            ...l.post,
+                            liked: currentUserId
+                                ? (l.post as any).likes?.length > 0
+                                : userId === currentUserId,
+                            bookmarked: currentUserId
+                                ? (l.post as any).bookmarks?.length > 0
+                                : false,
+                            likes: undefined,
+                            bookmarks: undefined,
+                        },
+                    };
+                }
+                if (l.article) {
+                    return {
+                        likeId: l.id,
+                        type: 'article',
+                        data: {
+                            ...l.article,
+                            liked: currentUserId
+                                ? (l.article as any).likes?.length > 0
+                                : userId === currentUserId,
+                            bookmarked: currentUserId
+                                ? (l.article as any).bookmarks?.length > 0
+                                : false,
+                            likes: undefined,
+                            bookmarks: undefined,
+                        },
+                    };
+                }
+                return null;
+            })
+            .filter(Boolean);
     }
 }
