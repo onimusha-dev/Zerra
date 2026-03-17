@@ -43,6 +43,20 @@ const configSchema = z.object({
 
     // AI Configuration
     GEMINI_API_KEY: z.string().optional(),
+
+    // R2 Storage Configuration
+    R2_ACCOUNT_ID: z.string().optional(),
+    R2_ACCESS_KEY_ID: z.string().optional(),
+    R2_SECRET_ACCESS_KEY: z.string().optional(),
+    R2_BUCKET_NAME: z.string().optional(),
+    R2_PUBLIC_URL: z.string().optional(),
+
+    // Supabase Storage Configuration
+    SUPABASE_PROJECT_REF: z.string().optional(),
+    SUPABASE_ACCESS_KEY_ID: z.string().optional(),
+    SUPABASE_SECRET_ACCESS_KEY: z.string().optional(),
+    SUPABASE_REGION: z.string().optional().default('us-east-1'),
+    SUPABASE_BUCKET: z.string().optional(),
 });
 
 type ConfigSchema = z.infer<typeof configSchema>;
@@ -187,6 +201,64 @@ export class ConfigService {
 
     get geminiApiKey(): string | undefined {
         return this.config.GEMINI_API_KEY;
+    }
+
+    get r2_account_id(): string | undefined {
+        return this.config.R2_ACCOUNT_ID;
+    }
+
+    get r2_access_key_id(): string | undefined {
+        return this.config.R2_ACCESS_KEY_ID;
+    }
+
+    get r2_secret_access_key(): string | undefined {
+        return this.config.R2_SECRET_ACCESS_KEY;
+    }
+
+    get r2_bucket_name(): string | undefined {
+        return this.config.R2_BUCKET_NAME;
+    }
+
+    get r2_public_url(): string | undefined {
+        return this.config.R2_PUBLIC_URL;
+    }
+
+    get isR2Configured(): boolean {
+        return !!(
+            this.config.R2_ACCOUNT_ID &&
+            this.config.R2_ACCESS_KEY_ID &&
+            this.config.R2_SECRET_ACCESS_KEY &&
+            this.config.R2_BUCKET_NAME
+        );
+    }
+
+    get supabase_project_ref(): string | undefined {
+        return this.config.SUPABASE_PROJECT_REF;
+    }
+
+    get supabase_access_key_id(): string | undefined {
+        return this.config.SUPABASE_ACCESS_KEY_ID;
+    }
+
+    get supabase_secret_access_key(): string | undefined {
+        return this.config.SUPABASE_SECRET_ACCESS_KEY;
+    }
+
+    get supabase_region(): string {
+        return this.config.SUPABASE_REGION || 'us-east-1';
+    }
+
+    get supabase_bucket(): string | undefined {
+        return this.config.SUPABASE_BUCKET;
+    }
+
+    get isSupabaseStorageConfigured(): boolean {
+        return !!(
+            this.config.SUPABASE_PROJECT_REF &&
+            this.config.SUPABASE_ACCESS_KEY_ID &&
+            this.config.SUPABASE_SECRET_ACCESS_KEY &&
+            this.config.SUPABASE_BUCKET
+        );
     }
 }
 

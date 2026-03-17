@@ -1,6 +1,6 @@
 import { LoggerService } from '@platform/logger/logger.service';
 import { MediaProcessor, ImageOptions } from './media.processor';
-import { StorageService } from '../storage/storage.service';
+import { IStorageProvider } from '../storage/storage-provider.interface';
 import { MediaError, UnsupportedMediaTypeError } from '@shared/json/apiError';
 import { ConfigService } from '@platform/config';
 
@@ -33,6 +33,11 @@ const UPLOAD_PROFILES: Record<string, MediaProfile> = {
         folder: 'thumbnails',
         options: { width: 300, height: 300, blur: 5, format: 'jpeg' },
     },
+    video: {
+        type: 'video',
+        folder: 'videos',
+        options: {}, // Placeholder for future video options
+    },
 };
 
 export class MediaService {
@@ -40,14 +45,14 @@ export class MediaService {
 
     private constructor(
         private readonly processor: MediaProcessor,
-        private readonly storage: StorageService,
+        private readonly storage: IStorageProvider,
         private readonly config: ConfigService,
         private readonly logger: LoggerService,
     ) {}
 
     static getInstance(
         processor: MediaProcessor,
-        storage: StorageService,
+        storage: IStorageProvider,
         config: ConfigService,
         logger: LoggerService,
     ): MediaService {
@@ -84,13 +89,18 @@ export class MediaService {
         }
 
         // Process according to profile
-        const processed = await this.processor.processImage(buffer, profile.options);
+        let processed: Buffer;
+        let extension: string;
 
-        const relativePath = await this.storage.save(
-            processed,
-            profile.options.format || 'webp',
-            profile.folder,
-        );
+        if (profile.type === 'video') {
+            processed = buffer;
+            extension = (await this.processor.getExtension(buffer)) || 'mp4';
+        } else {
+            processed = await this.processor.processImage(buffer, profile.options);
+            extension = profile.options.format || 'webp';
+        }
+
+        const relativePath = await this.storage.save(processed, extension, profile.folder);
         return this.resolveUrl(relativePath) as string;
     }
 
@@ -101,7 +111,7 @@ export class MediaService {
         if (!relativePath) return null;
         if (relativePath.startsWith('http') || relativePath.startsWith('/')) return relativePath;
 
-        if (this.config.isDevelopment) {
+        if (this.config.isDevelopment && !this.config.isR2Configured) {
             return `/uploads/${relativePath}`;
         }
 
@@ -115,6 +125,9 @@ export class MediaService {
     }
 
     async getStats() {
-        return await this.storage.getStorageStats();
+        if (this.storage.getStorageStats) {
+            return await this.storage.getStorageStats();
+        }
+        return { message: 'Storage stats not available for this provider' };
     }
 }

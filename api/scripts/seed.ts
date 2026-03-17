@@ -15,11 +15,6 @@ const sampleImages = [
     'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000',
     'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000',
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1000',
-    'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1000',
-    'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=1000',
-    'https://images.unsplash.com/photo-1481481600673-c6eb0d110185?q=80&w=1000',
-    'https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1000',
-    'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1000',
     'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?q=80&w=1000',
     'https://images.unsplash.com/photo-1470222009995-1f9f257d0794?q=80&w=1000',
 ];
@@ -29,112 +24,98 @@ function getRandomImage() {
 }
 
 const postContents = [
-    "Just discovered a new trick in CSS Grid. It's amazing how much you can do without absolute positioning.",
-    'Is anyone else obsessed with keyboard shortcuts? I barely touch my mouse anymore. ⌨️',
-    'Writing documentation is like leaving a love letter to your future self.',
-    'Serverless cold starts used to be a nightmare, but things are getting so much better.',
-    "Remember when we used jQuery for everything? Good times, but I don't miss the spaghetti code.",
-    'WebSockets make real-time features so easy to build. Chat apps are fun again!',
-    'Why does naming variables take up 50% of development time?',
-    'Just read an amazing article on system architecture. Scaling is truly an art.',
-    'Rust is calling my name... might have to spend this weekend learning it.',
-    "Animations shouldn't be an afterthought. They guide the user experience.",
-    "Anyone going to the tech conference next month? Let's meet up!",
-    'I still check MDN docs for Array methods. No shame.',
-    'Who else loves the feeling of a completely green test suite? ✅',
-    'Open source is the backbone of modern software. Huge respect to all contributors.',
-    'Refactoring day: deleted 500 lines of code and the app still works. Best feeling ever.',
-    'CSS variables have changed the way I write styles completely.',
-    'GraphQL or REST? I think both have their place depending on the project.',
-    "Security shouldn't be locked behind a paywall. Always use HTTPS.",
-    "Docker has saved me from 'it works on my machine' so many times.",
-    'Remember to stretch and look away from the screen! Your eyes will thank you.',
-    'Why write a 10-line loop when you can use reduce() and make it unreadable? 😅',
-    'Building an API from scratch is so satisfying until you have to implement OAuth2.',
-    'Vim users: how do you exit? Asking for a friend.',
-    'Just found out about the Web Audio API. Time to build a synth in the browser!',
-    "You don't need a heavy state management library for everything. Sometimes context is enough.",
+    'Spent 3 hours debugging just to realize I was mutating shared state. Pain.',
+    'I swear naming variables is harder than writing the logic.',
+    'Refactored a service today and nothing broke. Suspicious.',
+    "Sometimes I feel like I'm just moving data from one place to another and calling it engineering.",
+    'Switched from REST to GraphQL and now I miss REST. Happens every time.',
+    "You don't really understand async until something breaks in production.",
+    'Reading old code I wrote 6 months ago... who let me do this?',
+    'Tried Go today. Feels weirdly strict but also... peaceful?',
+    'I think I enjoy debugging more than writing new features.',
+    'Why do side projects feel more exciting than real work?',
+    'Every system looks simple until you add users.',
+    'Added logging. Suddenly everything makes sense.',
+    'There should be a rule: if it needs 3 comments, rewrite it.',
+    'I keep coming back to the same conclusion: simplicity wins.',
+    'Today’s bug was just a missing await. I need sleep.',
+    'I like backend because UI makes me feel dumb.',
+    'Optimized a query and saved 200ms. Felt like a hero for 5 minutes.',
+    'Docker fixed my problem and created two new ones.',
+    "I don't trust code that works on first run.",
+    'Feature done. Now comes the real work: edge cases.',
+    "I should write more tests. I won't. But I should.",
+    'Scaling scares me more than building.',
+    'Sometimes I think I just enjoy solving problems, not coding itself.',
+    'Production logs are more honest than any developer.',
+    'Clean code is just code you understand today.',
 ];
 
 const articleTopics = [
     {
-        title: 'The Rise of Edge Computing',
-        body: 'Deploying code closer to your users minimizes latency and improves performance drastically. In this piece, we explore how edge networks are fundamentally changing application deployment and why you should care.',
+        title: 'Why I Moved From Node.js to Go (And What I Miss)',
+        body: `I didn’t switch because Node.js is bad. I switched because I hit a ceiling in how I think about concurrency.
+
+Go forced me to slow down and actually understand what my code is doing.
+
+But I still miss the ecosystem, the flexibility, and honestly — the chaos.
+
+This is not a comparison. It’s a reflection.`,
     },
     {
-        title: 'Demystifying WebGL',
-        body: "3D graphics in the browser have never been more accessible. With libraries like Three.js, building interactive 3D experiences is easier than ever. Let's break down the basics of rendering pipelines and shaders.",
+        title: 'The First Time Production Broke Me',
+        body: `There’s a moment every developer remembers — when something breaks in production and you have no idea why.
+
+Mine involved a race condition, missing logs, and 2 hours of panic.
+
+That day changed how I write code more than any tutorial ever did.`,
     },
     {
-        title: 'Functional Programming in TypeScript',
-        body: 'While TypeScript is an OOP language at its core, it has excellent support for functional paradigms. Discover how utilizing pure functions, immutability, and higher-order functions can make your codebase cleaner and less prone to bugs.',
+        title: 'You Don’t Need Microservices Yet',
+        body: `I used to think microservices = senior engineering.
+
+Now I think microservices = distributed confusion if done too early.
+
+Most problems can be solved with a well-structured monolith.
+
+Scaling code is easier than scaling complexity.`,
     },
     {
-        title: 'The Economics of Open Source',
-        body: 'Open source software powers the digital world, but sustainability remains a critical issue for maintainers. Monetization models, corporate sponsorships, and the true cost of free software are examined.',
-    },
-    {
-        title: 'Building Offline-First Web Apps',
-        body: 'Service workers and IndexedDB give us the power to build robust applications that work without a network connection. Here is a step-by-step guide to implementing effective caching strategies.',
-    },
-    {
-        title: 'A Deep Dive into Node.js Event Loop',
-        body: "Understanding the event loop is crucial for writing performant asynchronous JavaScript. We'll trace the execution lifecycle, microtasks, macrotasks, and how to avoid blocking the main thread.",
-    },
-    {
-        title: 'Next-Gen CSS: Container Queries',
-        body: "Media queries were revolutionizing, but container queries are taking responsive design to the next level. Now, components can respond to their parent's width instead of the viewport.",
-    },
-    {
-        title: 'GraphQL Patterns and Anti-Patterns',
-        body: 'GraphQL solves many REST issues but introduces new ones like the N+1 problem. Explore advanced techniques like DataLoader, schema stitching, and query complexity analysis.',
-    },
-    {
-        title: 'Monorepos vs Polyrepos',
-        body: 'Managing multiple services and packages can get complicated. We compare the benefits of consolidating your codebase with tools like Nx or Turborepo against keeping repositories separate.',
-    },
-    {
-        title: 'The Art of Writing Good Test Cases',
-        body: "Tests are only as good as what they assert. Learn the difference between unit, integration, and end-to-end tests, and how to adopt a pragmatic testing strategy that doesn't slow down development.",
-    },
-    {
-        title: 'WebAssembly: Future or Hype?',
-        body: "With languages like Rust and C++ compiling to WASM, native speeds in the browser are a reality. Let's look at real-world benchmarks and use-cases where WASM truly outshines JavaScript.",
-    },
-    {
-        title: 'Building Custom React Hooks',
-        body: "Extracting logic into custom hooks is a superpower for React developers. We'll build hooks for debouncing input, tracking intersection observers, and managing complex focus states.",
+        title: 'Why Debugging Is The Real Skill',
+        body: `Anyone can write code.
+
+But sitting with a broken system, tracing logs, forming hypotheses — that’s the real craft.
+
+Debugging teaches patience in a way nothing else does.`,
     },
 ];
 
 async function main() {
     const password = await argon2.hash('password123');
 
-    // Create a demo user
     const user = await prisma.user.upsert({
-        where: { email: 'demo@zerra.com' },
+        where: { email: 'aarav.kulkarni@zerra.dev' },
         update: {},
         create: {
-            email: 'demo@zerra.com',
-            username: 'demouser',
-            name: 'Demo User',
+            email: 'aarav.kulkarni@zerra.dev',
+            username: 'aaravk_dev',
+            name: 'Aarav Kulkarni',
             password: password,
-            bio: 'Just another inhabitant of Zerra.',
+            bio: 'Backend dev | Node.js → Go | Obsessed with clean systems & debugging weird production issues | trial & error is the only real teacher',
             isVerified: true,
-            timezone: 'UTC',
+            timezone: 'Asia/Kolkata',
         },
     });
 
     console.log(`User created/found: ${user.username}`);
 
-    // Create 70 demo posts
     for (let i = 0; i < 70; i++) {
-        const hasMedia = Math.random() > 0.6; // 40% chance to have media
+        const hasMedia = Math.random() > 0.6;
         const randomContent = postContents[Math.floor(Math.random() * postContents.length)];
 
         await prisma.post.create({
             data: {
-                content: `${randomContent} (Post Batch 2 - #${i + 1})`,
+                content: `${randomContent} (#${i + 1})`,
                 published: true,
                 media: hasMedia ? getRandomImage() : null,
                 authorId: user.id,
@@ -142,19 +123,19 @@ async function main() {
         });
     }
 
-    console.log('70 Demo posts created.');
+    console.log('70 posts created.');
 
-    // Create 45 demo articles
     for (let i = 0; i < 45; i++) {
-        const hasBanner = Math.random() > 0.5; // 50% chance to have a banner
+        const hasBanner = Math.random() > 0.5;
         const randomArticle = articleTopics[Math.floor(Math.random() * articleTopics.length)];
 
-        // Add some variation to the content
-        const uniqueBody = `${randomArticle.body}\n\nHere is a continuation of the article content intended to test long-form reading optimizations. Deep diving into ${randomArticle.title.toLowerCase()} provides profound insights into exactly how web platforms operate in 2026. This is expansion paragraph #${i + 1}.`;
+        const uniqueBody = `${randomArticle.body}
+
+Extra note ${i + 1}: still figuring things out, still learning the hard way.`;
 
         await prisma.article.create({
             data: {
-                title: `${randomArticle.title} - Batch 2 pt.${i + 1}`,
+                title: `${randomArticle.title} pt.${i + 1}`,
                 body: uniqueBody,
                 published: true,
                 enableComments: true,
@@ -164,7 +145,7 @@ async function main() {
         });
     }
 
-    console.log('45 Demo articles created.');
+    console.log('45 articles created.');
 }
 
 main()

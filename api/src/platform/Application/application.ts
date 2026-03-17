@@ -32,6 +32,9 @@ import {
 import { UserRepository } from '@modules/user/user.repository';
 import { MediaProcessor } from '@platform/media/media.processor';
 import { StorageService } from '@platform/storage/storage.service';
+import { R2StorageService } from '@platform/storage/cloudflare.storage.service';
+import { SupabaseStorageService } from '@platform/storage/supabase.storage.service';
+import { IStorageProvider } from '@platform/storage/storage-provider.interface';
 import { MediaService } from '@platform/media/media.service';
 import { OllamaService, GeminiService } from '@platform/ai';
 import { FernService } from '@modules/fern/fern.service';
@@ -49,7 +52,7 @@ export class Application {
     private database!: DatabaseService;
     private cache!: CacheService;
     private mediaProcessor!: MediaProcessor;
-    private storageService!: StorageService;
+    private storageService!: IStorageProvider;
     private mediaService!: MediaService;
     private ollamaService!: OllamaService;
     private geminiService!: GeminiService;
@@ -136,14 +139,25 @@ export class Application {
 
     private async initializeMedia(): Promise<void> {
         this.mediaProcessor = MediaProcessor.getInstance(this.logger);
-        this.storageService = StorageService.getInstance(this.logger);
+
+        // Adaptive Storage Hierarchy
+        if (this.config.isR2Configured) {
+            this.storageService = R2StorageService.getInstance(this.config, this.logger);
+            this.logger.info('Media infrastructure initialized using Cloudflare R2');
+        } else if (this.config.isSupabaseStorageConfigured) {
+            this.storageService = SupabaseStorageService.getInstance(this.config, this.logger);
+            this.logger.info('Media infrastructure initialized using Supabase Storage (Free)');
+        } else {
+            this.storageService = StorageService.getInstance(this.logger);
+            this.logger.info('Media infrastructure initialized using Local Storage');
+        }
+
         this.mediaService = MediaService.getInstance(
             this.mediaProcessor,
             this.storageService,
             this.config,
             this.logger,
         );
-        this.logger.info('Media infrastructure initialized');
     }
 
     private async initializeAI(): Promise<void> {

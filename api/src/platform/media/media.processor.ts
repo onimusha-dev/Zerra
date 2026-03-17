@@ -94,6 +94,11 @@ export class MediaProcessor {
         return type.mime.startsWith(`${expected}/`);
     }
 
+    async getExtension(buffer: Buffer): Promise<string | undefined> {
+        const type = await fileTypeFromBuffer(buffer);
+        return type?.ext;
+    }
+
     async generateVideoThumbnail(inputPath: string, outputPath: string): Promise<void> {
         return new Promise((resolve, reject) => {
             ffmpeg(inputPath)
