@@ -4,6 +4,8 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { MediaError, InternalServerError } from '@shared/json/apiError';
 
+import { IStorageProvider } from './storage-provider.interface';
+
 /**
  * @module StorageService
  * @description Handles physical file operations on the disk.
@@ -14,7 +16,7 @@ import { MediaError, InternalServerError } from '@shared/json/apiError';
  * 1. Two users might upload "image.jpg" and overwrite each other.
  * 2. Original filenames can contain special characters that break things.
  */
-export class StorageService {
+export class StorageService implements IStorageProvider {
     private static instance: StorageService | null = null;
     private readonly uploadDir: string;
 
