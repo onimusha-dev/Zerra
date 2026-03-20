@@ -1,14 +1,15 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import MainLayout from '@/components/layout/main-layout';
+import MainLayout, { MobileSideBar, navItems } from '@/components/layout/main-layout';
 
-import { Loader2, Sparkles, RefreshCw } from 'lucide-react';
+import { Loader2, Sparkles, RefreshCw, Link } from 'lucide-react';
 import { useFeed, FeedItem } from '@/hooks/queries/useFeed';
 import PostCard from '@/components/features/feed/post-card';
 import ArticleCard from '@/components/features/feed/article-card';
 import { InfiniteScrollTrigger } from '@/components/ui/infinite-scroll-trigger';
 import ComposeBox from '@/components/features/feed/compose-box';
+import { CreatePost } from '@/components/features/feed/write-post';
 
 export default function Home() {
     const queryClient = useQueryClient();
@@ -18,12 +19,16 @@ export default function Home() {
 
     return (
         <MainLayout>
-            <div className="flex h-14 items-center border-b px-4 sticky top-0 bg-background/80 backdrop-blur-md z-20 justify-between">
-                <h2 className="text-xl font-bold">Home</h2>
-                <Sparkles className="h-5 w-5 text-primary-ui opacity-50" />
+            <div className="flex h-14 items-center border-b px-4 sticky top-0 bg-background/80 backdrop-blur-md z-20 justify-between  ">
+                <div className="flex gap-2 items-center justify-center">
+                    <MobileSideBar navItems={navItems} />
+                    <h2 className="text-xl font-bold">Home</h2>
+                </div>
             </div>
 
             <ComposeBox />
+
+            <CreatePost />
 
             {/* Feed */}
             <div className="flex flex-col">
@@ -76,7 +81,7 @@ export default function Home() {
                         )}
                     </>
                 ) : (
-                    <div className="flex flex-col items-center justify-center p-12 text-center">
+                    <div className="flex flex-col items-center justify-center p-12 text-center  ">
                         <div className="h-16 w-16 rounded-full bg-secondary-ui flex items-center justify-center mb-4">
                             <Sparkles className="h-8 w-8 text-primary-ui opacity-20" />
                         </div>

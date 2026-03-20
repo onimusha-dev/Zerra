@@ -2,9 +2,8 @@
 
 import React, { useState } from 'react';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { User, Image as ImageIcon, Send, FileText, Loader2, AlertCircle } from 'lucide-react';
+import { User, Image as ImageIcon, Loader2, AlertCircle } from 'lucide-react';
 import { useCreatePost } from '@/hooks/queries/usePosts';
-import Link from 'next/link';
 import { cn, getMediaUrl } from '@/lib/utils';
 import { motion, useScroll, useMotionValueEvent, AnimatePresence } from 'framer-motion';
 
@@ -120,7 +119,7 @@ export default function ComposeBox() {
                             <img
                                 src={mediaPreview}
                                 alt="Preview"
-                                className="max-h-[300px] object-contain bg-secondary-ui/20"
+                                className="max-h-75 object-contain bg-secondary-ui/20"
                             />
                             <button
                                 onClick={removeMedia}
@@ -146,19 +145,12 @@ export default function ComposeBox() {
                             >
                                 <ImageIcon className="h-5 w-5" />
                             </label>
-                            <Link
-                                href="/articles/create"
-                                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 hover:bg-primary-ui/10 transition-colors font-medium text-sm"
-                            >
-                                <FileText className="h-4 w-4" />
-                                Write Article
-                            </Link>
                         </div>
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2">
                                 <span
                                     className={cn(
-                                        'text-xs font-medium',
+                                        'text-xs font-medium  ',
                                         !user?.isVerified && content.length > 500
                                             ? 'text-red-500'
                                             : 'text-secondary-foreground opacity-40',

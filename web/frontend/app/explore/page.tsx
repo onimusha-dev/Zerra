@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import MainLayout from '@/components/layout/main-layout';
+import MainLayout, { MobileSideBar, navItems } from '@/components/layout/main-layout';
 import { Search, TrendingUp, Loader2 } from 'lucide-react';
 import { useArticles } from '@/hooks/queries/useArticles';
 import ArticleCard from '@/components/features/feed/article-card';
@@ -16,7 +16,8 @@ export default function ExplorePage() {
     return (
         <MainLayout>
             <div className="flex flex-col border-b sticky top-0 bg-background/80 backdrop-blur-md z-10 px-4 pt-4">
-                <div className="relative mb-4">
+                <div className="relative flex gap-2 mb-4">
+                    <MobileSideBar navItems={navItems} />
                     <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary-foreground opacity-50" />
                     <input
                         type="text"
@@ -66,7 +67,7 @@ export default function ExplorePage() {
                         />
                     </>
                 ) : (
-                    <div className="flex flex-col p-12 items-center text-center">
+                    <div className="flex flex-col p-12 items-center text-center  ">
                         <TrendingUp className="h-10 w-10 text-primary-ui opacity-20 mb-4" />
                         <h3 className="text-xl font-bold">Nothing is trending yet</h3>
                         <p className="text-secondary-foreground opacity-60 max-w-xs mt-2">

@@ -9,7 +9,7 @@ export const createCsrfMiddleware = (config: ConfigService) => {
             const userAgent = c.req.header('User-Agent');
             if (config.isDevelopment && userAgent?.includes('Postman')) return true;
 
-            if (config.isDevelopment && config.corsOrigin === '*') return true;
+            // if (config.isDevelopment && config.corsOrigin === '*') return true;
 
             const allowedOrigins = [
                 'https://zerra-nine.vercel.app',

@@ -18,7 +18,7 @@ export const createCorsMiddleware = (config: ConfigService) => {
                 );
             }
 
-            if (allowedOrigins.includes('*')) return '*';
+            // if (allowedOrigins.includes('*')) return '*';
             if (origin && allowedOrigins.includes(origin)) return origin;
 
             // Default to the first allowed origin if no match but valid

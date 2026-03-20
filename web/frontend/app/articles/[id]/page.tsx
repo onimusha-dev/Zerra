@@ -79,7 +79,8 @@ export default function ArticlePage() {
                                     <img
                                         src={getMediaUrl(article.banner)}
                                         alt={article.title}
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full object-cover select-none"
+                                        draggable={false}
                                     />
                                 </div>
                             )}
@@ -93,7 +94,8 @@ export default function ArticlePage() {
                                             <img
                                                 src={getMediaUrl((article as any).author.avatar)}
                                                 alt="Author"
-                                                className="h-full w-full object-cover"
+                                                className="h-full w-full object-cover select-none"
+                                                draggable={false}
                                             />
                                         ) : (
                                             <User className="h-6 w-6 opacity-40 m-auto mt-3" />
@@ -114,13 +116,13 @@ export default function ArticlePage() {
                                     </div>
                                 </div>
 
-                                <h1 className="text-3xl md:text-5xl font-black leading-tight text-foreground">
+                                <h1 className="text-3xl md:text-5xl font-black leading-tight text-foreground select-text">
                                     {article.title}
                                 </h1>
 
                                 <div className="h-px w-full bg-border-ui" />
 
-                                <div className="prose prose-neutral dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-secondary-ui prose-pre:border prose-pre:border-border-ui prose-a:text-primary-ui text-[17px] md:text-lg">
+                                <div className="prose prose-neutral dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-secondary-ui prose-pre:border prose-pre:border-border-ui prose-a:text-primary-ui text-[17px] md:text-lg select-text">
                                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                         {article.body}
                                     </ReactMarkdown>
@@ -147,7 +149,8 @@ export default function ArticlePage() {
                                         <img
                                             src={getMediaUrl(user.avatar)}
                                             alt="Avatar"
-                                            className="h-full w-full object-cover"
+                                            className="h-full w-full object-cover select-none"
+                                            draggable={false}
                                         />
                                     ) : (
                                         <User className="h-5 w-5 opacity-40" />

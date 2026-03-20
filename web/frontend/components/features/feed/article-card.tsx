@@ -53,7 +53,7 @@ export default function ArticleCard({ article, className }: ArticleCardProps) {
             animate={{ opacity: 1, y: 0 }}
             onClick={() => router.push(`/articles/${article?.id || id}`)}
             className={cn(
-                'group flex w-full gap-3 border-b p-4 transition-colors hover:bg-secondary-ui/10 cursor-pointer',
+                'flex w-full gap-3 border-b p-4 transition-colors hover:bg-secondary-ui/10 cursor-pointer',
                 className,
             )}
         >
@@ -65,6 +65,7 @@ export default function ArticleCard({ article, className }: ArticleCardProps) {
                                 src={getMediaUrl(avatarUrl)}
                                 alt={author?.name || 'Logo'}
                                 className="h-full w-full object-cover select-none"
+                                draggable={false}
                             />
                         ) : (
                             <div className="flex h-full w-full items-center justify-center text-xs font-bold opacity-40">
@@ -173,7 +174,8 @@ export default function ArticleCard({ article, className }: ArticleCardProps) {
                         <img
                             src={getMediaUrl(banner)}
                             alt={title}
-                            className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                            className="h-full w-full object-cover transition-transform duration-500 hover:scale-105 select-none"
+                            draggable={false}
                         />
                     </div>
                 )}
@@ -187,14 +189,14 @@ export default function ArticleCard({ article, className }: ArticleCardProps) {
                         className="group flex items-center gap-2 transition-colors hover:text-primary-ui"
                     >
                         <div className="rounded-full p-2 group-hover:bg-primary-ui/10">
-                            <MessageCircle className="h-[18px] w-[18px]" />
+                            <MessageCircle className="h-4.5 w-4.5" />
                         </div>
                         <span className="text-xs">{_count?.comments || 0}</span>
                     </Link>
 
                     <button className="group flex items-center gap-2 transition-colors hover:text-emerald-500">
                         <div className="rounded-full p-2 group-hover:bg-emerald-500/10">
-                            <Repeat2 className="h-[18px] w-[18px]" />
+                            <Repeat2 className="h-4.5 w-4.5" />
                         </div>
                         <span className="text-xs">0</span>
                     </button>
@@ -215,7 +217,7 @@ export default function ArticleCard({ article, className }: ArticleCardProps) {
 
                         <button className="group flex items-center transition-colors hover:text-primary-ui ml-1">
                             <div className="rounded-full p-2 group-hover:bg-primary-ui/10">
-                                <Share2 className="h-[18px] w-[18px]" />
+                                <Share2 className="h-4.5 w-4.5" />
                             </div>
                         </button>
                     </div>

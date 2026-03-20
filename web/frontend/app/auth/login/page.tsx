@@ -6,11 +6,12 @@ import { motion } from 'framer-motion';
 import { useAuthMutations } from '@/hooks/mutations/useAuth';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useRouter } from 'next/navigation';
-import { Loader2, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Loader2, Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const { loginMutation } = useAuthMutations();
     const { isAuthenticated, user } = useAuthStore();
     const router = useRouter();
@@ -62,13 +63,32 @@ export default function LoginPage() {
                         <div className="relative">
                             <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 opacity-40" />
                             <input
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Password"
-                                className="w-full rounded-2xl border bg-background py-4 pl-12 pr-4 outline-none focus:ring-2 focus:ring-primary-ui/20 transition-all"
+                                className="w-full rounded-2xl border bg-background py-4 pl-12 pr-12 outline-none focus:ring-2 focus:ring-primary-ui/20 transition-all"
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-100 transition-opacity"
+                            >
+                                {showPassword ? (
+                                    <EyeOff className="h-5 w-5" />
+                                ) : (
+                                    <Eye className="h-5 w-5" />
+                                )}
+                            </button>
+                        </div>
+                        <div className="flex justify-end pr-2">
+                            <Link
+                                href="/auth/forgot-password"
+                                className="text-xs font-semibold text-primary-ui hover:underline px-1 py-1"
+                            >
+                                Forgot password?
+                            </Link>
                         </div>
                     </div>
 

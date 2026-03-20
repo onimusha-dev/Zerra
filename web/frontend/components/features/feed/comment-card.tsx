@@ -18,7 +18,7 @@ export default function CommentCard({ comment }: { comment: any }) {
                         <img
                             src={getMediaUrl(avatarUrl)}
                             alt={author?.name || 'Logo'}
-                            className="h-full w-full object-cover select-none"
+                            className="h-full w-full object-cover  "
                         />
                     ) : (
                         <div className="flex h-full w-full items-center justify-center text-xs font-bold opacity-40">
@@ -66,14 +66,14 @@ export default function CommentCard({ comment }: { comment: any }) {
                 <div className="mt-3 flex max-w-sm justify-between text-secondary-foreground opacity-60">
                     <button className="group flex items-center gap-2 transition-colors hover:text-primary-ui">
                         <div className="rounded-full p-2 group-hover:bg-primary-ui/10">
-                            <MessageCircle className="h-[18px] w-[18px]" />
+                            <MessageCircle className="h-4.5 w-4.5" />
                         </div>
                         <span className="text-xs">{_count?.replies || 0}</span>
                     </button>
 
                     <button className="group flex items-center gap-2 transition-colors hover:text-emerald-500">
                         <div className="rounded-full p-2 group-hover:bg-emerald-500/10">
-                            <Repeat2 className="h-[18px] w-[18px]" />
+                            <Repeat2 className="h-4.5 w-4.5" />
                         </div>
                         <span className="text-xs">0</span>
                     </button>
@@ -88,7 +88,7 @@ export default function CommentCard({ comment }: { comment: any }) {
                     <div className="flex items-center">
                         <button className="group flex items-center transition-colors hover:text-primary-ui ml-1">
                             <div className="rounded-full p-2 group-hover:bg-primary-ui/10">
-                                <Share2 className="h-[18px] w-[18px]" />
+                                <Share2 className="h-4.5 w-4.5" />
                             </div>
                         </button>
                     </div>
