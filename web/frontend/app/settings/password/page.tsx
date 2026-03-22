@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import MainLayout from '@/components/layout/main-layout';
-import { ArrowLeft, Loader2, KeyRound } from 'lucide-react';
+import { ArrowLeft, Loader2, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 
@@ -11,6 +11,9 @@ export default function PasswordSettingsPage() {
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showOldPassword, setShowOldPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -89,14 +92,27 @@ export default function PasswordSettingsPage() {
                         <label className="text-sm font-bold opacity-80 pl-1 uppercase tracking-wider text-[11px]">
                             Current password
                         </label>
-                        <input
-                            type="password"
-                            value={oldPassword}
-                            onChange={(e) => setOldPassword(e.target.value)}
-                            className="rounded-xl border border-secondary-ui bg-transparent p-4 outline-none transition-all focus:border-primary-ui focus:ring-1 focus:ring-primary-ui text-foreground placeholder:opacity-50"
-                            placeholder="Enter current password"
-                            required
-                        />
+                        <div className="relative">
+                            <input
+                                type={showOldPassword ? 'text' : 'password'}
+                                value={oldPassword}
+                                onChange={(e) => setOldPassword(e.target.value)}
+                                className="w-full rounded-xl border border-secondary-ui bg-transparent p-4 pr-12 outline-none transition-all focus:border-primary-ui focus:ring-1 focus:ring-primary-ui text-foreground placeholder:opacity-50"
+                                placeholder="Enter current password"
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowOldPassword(!showOldPassword)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-100 transition-opacity"
+                            >
+                                {showOldPassword ? (
+                                    <EyeOff className="h-5 w-5" />
+                                ) : (
+                                    <Eye className="h-5 w-5" />
+                                )}
+                            </button>
+                        </div>
                         <span className="text-xs opacity-60 pl-1">
                             Required to verify your identity
                         </span>
@@ -108,28 +124,54 @@ export default function PasswordSettingsPage() {
                         <label className="text-sm font-bold opacity-80 pl-1 uppercase tracking-wider text-[11px]">
                             New password
                         </label>
-                        <input
-                            type="password"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            className="rounded-xl border border-secondary-ui bg-transparent p-4 outline-none transition-all focus:border-primary-ui focus:ring-1 focus:ring-primary-ui text-foreground placeholder:opacity-50"
-                            placeholder="Enter new password"
-                            required
-                        />
+                        <div className="relative">
+                            <input
+                                type={showNewPassword ? 'text' : 'password'}
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                className="w-full rounded-xl border border-secondary-ui bg-transparent p-4 pr-12 outline-none transition-all focus:border-primary-ui focus:ring-1 focus:ring-primary-ui text-foreground placeholder:opacity-50"
+                                placeholder="Enter new password"
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowNewPassword(!showNewPassword)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-100 transition-opacity"
+                            >
+                                {showNewPassword ? (
+                                    <EyeOff className="h-5 w-5" />
+                                ) : (
+                                    <Eye className="h-5 w-5" />
+                                )}
+                            </button>
+                        </div>
                     </div>
 
                     <div className="flex flex-col gap-1.5 focus-within:text-primary-ui transition-colors text-secondary-foreground">
                         <label className="text-sm font-bold opacity-80 pl-1 uppercase tracking-wider text-[11px]">
                             Confirm password
                         </label>
-                        <input
-                            type="password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            className="rounded-xl border border-secondary-ui bg-transparent p-4 outline-none transition-all focus:border-primary-ui focus:ring-1 focus:ring-primary-ui text-foreground placeholder:opacity-50"
-                            placeholder="Confirm new password"
-                            required
-                        />
+                        <div className="relative">
+                            <input
+                                type={showConfirmPassword ? 'text' : 'password'}
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className="w-full rounded-xl border border-secondary-ui bg-transparent p-4 pr-12 outline-none transition-all focus:border-primary-ui focus:ring-1 focus:ring-primary-ui text-foreground placeholder:opacity-50"
+                                placeholder="Confirm new password"
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-100 transition-opacity"
+                            >
+                                {showConfirmPassword ? (
+                                    <EyeOff className="h-5 w-5" />
+                                ) : (
+                                    <Eye className="h-5 w-5" />
+                                )}
+                            </button>
+                        </div>
                     </div>
 
                     <button

@@ -2,11 +2,9 @@
 
 import React, { useState } from 'react';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { User, Image as ImageIcon, Send, FileText, Loader2, AlertCircle } from 'lucide-react';
+import { User, Image as ImageIcon, Loader2, AlertCircle } from 'lucide-react';
 import { useCreatePost } from '@/hooks/queries/usePosts';
-import Link from 'next/link';
 import { cn, getMediaUrl } from '@/lib/utils';
-import { motion, useScroll, useMotionValueEvent, AnimatePresence } from 'framer-motion';
 
 export default function ComposeBox() {
     const { user } = useAuthStore();
@@ -14,22 +12,8 @@ export default function ComposeBox() {
     const [media, setMedia] = useState<File | null>(null);
     const [mediaPreview, setMediaPreview] = useState<string | null>(null);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
-
     const { mutateAsync: createPost, isPending } = useCreatePost();
-    const [isVisible, setIsVisible] = useState(true);
-    const { scrollY } = useScroll();
-
-    useMotionValueEvent(scrollY, 'change', (latest) => {
-        const previous = scrollY.getPrevious() || 0;
-        if (latest > previous && latest > 100) {
-            setIsVisible(false);
-        } else if (latest < previous) {
-            setIsVisible(true);
-        }
-        if (latest < 20) {
-            setIsVisible(true);
-        }
-    });
+    const [error, setError] = useState<string | null>(null);
 
     const handleMediaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -47,8 +31,6 @@ export default function ComposeBox() {
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    const [error, setError] = useState<string | null>(null);
-
     const handleSubmit = async (published: boolean = true) => {
         if ((!content.trim() && !media) || isPending) return;
         try {
@@ -62,34 +44,25 @@ export default function ComposeBox() {
         }
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        // Check if Shift + Enter is pressed
+        if (e.key === 'Enter' && e.shiftKey) {
+            e.preventDefault(); // Prevent default newline behavior
+            handleSubmit();
+        }
+    };
+
     return (
-        <motion.div
-            initial={{ y: 0, opacity: 1 }}
-            animate={{ y: isVisible ? 0 : -100, opacity: isVisible ? 1 : 0 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="sticky top-14 z-10 w-full border-b bg-background/95 backdrop-blur-md p-4 pt-3 flex flex-col gap-3"
-        >
-            <AnimatePresence>
-                {error && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden"
-                    >
-                        <div className="bg-destructive/10 text-destructive text-xs px-3 py-2 rounded-lg font-medium flex items-center gap-2">
-                            <AlertCircle className="h-3.5 w-3.5" />
-                            {error}
-                            <button
-                                onClick={() => setError(null)}
-                                className="ml-auto hover:opacity-70"
-                            >
-                                ✕
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+        <div className="hidden md:block w-full border-b bg-background p-4 flex-col gap-3">
+            {error && (
+                <div className="bg-destructive/10 text-destructive text-xs px-3 py-2 rounded-lg font-medium flex items-center gap-2">
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    {error}
+                    <button onClick={() => setError(null)} className="ml-auto hover:opacity-70">
+                        ✕
+                    </button>
+                </div>
+            )}
             <div className="flex gap-3 w-full">
                 <div className="h-10 w-10 shrink-0 rounded-full bg-secondary-ui flex items-center justify-center overflow-hidden border border-border-ui">
                     {user?.avatar ? (
@@ -106,6 +79,7 @@ export default function ComposeBox() {
                     <textarea
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
+                        onKeyDown={handleKeyDown}
                         placeholder="What's happening?!"
                         className="w-full resize-none border-none bg-transparent text-lg outline-none placeholder:text-foreground/40 mt-1.5 focus:ring-0"
                         rows={1}
@@ -120,7 +94,7 @@ export default function ComposeBox() {
                             <img
                                 src={mediaPreview}
                                 alt="Preview"
-                                className="max-h-[300px] object-contain bg-secondary-ui/20"
+                                className="max-h-75 object-contain bg-secondary-ui/20"
                             />
                             <button
                                 onClick={removeMedia}
@@ -146,13 +120,6 @@ export default function ComposeBox() {
                             >
                                 <ImageIcon className="h-5 w-5" />
                             </label>
-                            <Link
-                                href="/articles/create"
-                                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 hover:bg-primary-ui/10 transition-colors font-medium text-sm"
-                            >
-                                <FileText className="h-4 w-4" />
-                                Write Article
-                            </Link>
                         </div>
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2">
@@ -201,6 +168,6 @@ export default function ComposeBox() {
                     </div>
                 </div>
             </div>
-        </motion.div>
+        </div>
     );
 }

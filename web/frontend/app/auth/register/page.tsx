@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { useAuthMutations } from '@/hooks/mutations/useAuth';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useRouter } from 'next/navigation';
-import { Loader2, Mail, Lock, User, AtSign, AlertCircle } from 'lucide-react';
+import { Loader2, Mail, Lock, User, AtSign, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function RegisterPage() {
@@ -17,6 +17,8 @@ export default function RegisterPage() {
         password: '',
         confirmPassword: '',
     });
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const { registerMutation } = useAuthMutations();
     const { isAuthenticated, user } = useAuthStore();
@@ -99,26 +101,48 @@ export default function RegisterPage() {
                         <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 opacity-40" />
                         <input
                             name="password"
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             required
                             value={formData.password}
                             onChange={handleChange}
                             placeholder="Password"
-                            className="w-full rounded-2xl border bg-background py-4 pl-12 pr-4 outline-none focus:ring-2 focus:ring-primary-ui/20 transition-all"
+                            className="w-full rounded-2xl border bg-background py-4 pl-12 pr-12 outline-none focus:ring-2 focus:ring-primary-ui/20 transition-all"
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-100 transition-opacity"
+                        >
+                            {showPassword ? (
+                                <EyeOff className="h-5 w-5" />
+                            ) : (
+                                <Eye className="h-5 w-5" />
+                            )}
+                        </button>
                     </div>
 
                     <div className="relative">
                         <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 opacity-40" />
                         <input
                             name="confirmPassword"
-                            type="password"
+                            type={showConfirmPassword ? 'text' : 'password'}
                             required
                             value={formData.confirmPassword}
                             onChange={handleChange}
                             placeholder="Confirm Password"
-                            className="w-full rounded-2xl border bg-background py-4 pl-12 pr-4 outline-none focus:ring-2 focus:ring-primary-ui/20 transition-all"
+                            className="w-full rounded-2xl border bg-background py-4 pl-12 pr-12 outline-none focus:ring-2 focus:ring-primary-ui/20 transition-all"
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-100 transition-opacity"
+                        >
+                            {showConfirmPassword ? (
+                                <EyeOff className="h-5 w-5" />
+                            ) : (
+                                <Eye className="h-5 w-5" />
+                            )}
+                        </button>
                     </div>
 
                     {registerMutation.isError && (

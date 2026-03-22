@@ -73,7 +73,7 @@ export default function PostPage() {
                 ) : (
                     <>
                         {/* The main post */}
-                        <PostCard post={post} isDetailedView />
+                        <PostCard post={post} isDetailedView canSelect={true} />
 
                         {/* Reply Input Box */}
                         <div
@@ -86,7 +86,8 @@ export default function PostPage() {
                                         <img
                                             src={getMediaUrl(user.avatar)}
                                             alt="Avatar"
-                                            className="h-full w-full object-cover"
+                                            className="h-full w-full object-cover select-none"
+                                            draggable={false}
                                         />
                                     ) : (
                                         <User className="h-5 w-5 opacity-40" />

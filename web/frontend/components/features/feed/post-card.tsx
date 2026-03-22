@@ -18,9 +18,15 @@ interface PostCardProps {
     post: Post;
     className?: string;
     isDetailedView?: boolean;
+    canSelect?: boolean;
 }
 
-export default function PostCard({ post, className, isDetailedView = false }: PostCardProps) {
+export default function PostCard({
+    post,
+    className,
+    isDetailedView = false,
+    canSelect = false,
+}: PostCardProps) {
     const {
         author: postAuthor,
         user: postUser,
@@ -81,7 +87,7 @@ export default function PostCard({ post, className, isDetailedView = false }: Po
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className={cn(
-                'group flex w-full gap-3 border-b p-4 transition-colors hover:bg-secondary-ui/10',
+                'flex w-full gap-3 border-b p-4 transition-colors hover:bg-secondary-ui/10',
                 className,
             )}
         >
@@ -92,6 +98,7 @@ export default function PostCard({ post, className, isDetailedView = false }: Po
                             src={getMediaUrl(avatarUrl)}
                             alt={author?.name || 'Logo'}
                             className="h-full w-full object-cover select-none"
+                            draggable={false}
                         />
                     ) : (
                         <div className="flex h-full w-full items-center justify-center text-xs font-bold opacity-40">
@@ -267,6 +274,7 @@ export default function PostCard({ post, className, isDetailedView = false }: Po
                                 'text-[15px] leading-normal whitespace-pre-wrap wrap-break-word transition-all',
                                 !isDetailedView && !isExpanded && 'line-clamp-4',
                                 isDetailedView && 'text-[16px]',
+                                canSelect && 'select-text',
                             )}
                         >
                             {content}
@@ -289,7 +297,8 @@ export default function PostCard({ post, className, isDetailedView = false }: Po
                                 <img
                                     src={getMediaUrl(media)}
                                     alt="Post content"
-                                    className="max-h-[500px] w-full object-cover"
+                                    className="max-h-125 w-full object-cover select-none"
+                                    draggable={false}
                                 />
                             </div>
                         )}
@@ -302,14 +311,14 @@ export default function PostCard({ post, className, isDetailedView = false }: Po
                         className="group flex items-center gap-2 transition-colors hover:text-primary-ui"
                     >
                         <div className="rounded-full p-2 group-hover:bg-primary-ui/10">
-                            <MessageCircle className="h-[18px] w-[18px]" />
+                            <MessageCircle className="h-4.5 w-4.5" />
                         </div>
                         <span className="text-xs">{_count?.comments || 0}</span>
                     </Link>
 
                     <button className="group flex items-center gap-2 transition-colors hover:text-emerald-500">
                         <div className="rounded-full p-2 group-hover:bg-emerald-500/10">
-                            <Repeat2 className="h-[18px] w-[18px]" />
+                            <Repeat2 className="h-4.5 w-4.5" />
                         </div>
                         <span className="text-xs">0</span>
                     </button>
@@ -330,7 +339,7 @@ export default function PostCard({ post, className, isDetailedView = false }: Po
 
                         <button className="group flex items-center transition-colors hover:text-primary-ui ml-1">
                             <div className="rounded-full p-2 group-hover:bg-primary-ui/10">
-                                <Share2 className="h-[18px] w-[18px]" />
+                                <Share2 className="h-4.5 w-4.5" />
                             </div>
                         </button>
                     </div>

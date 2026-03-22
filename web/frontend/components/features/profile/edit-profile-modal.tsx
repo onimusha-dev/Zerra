@@ -128,7 +128,7 @@ export default function EditProfileModal({ isOpen, onClose, profile }: EditProfi
                         <div className="flex items-center gap-6">
                             <button
                                 onClick={onClose}
-                                className="rounded-full p-2 transition-colors hover:bg-secondary-ui text-foreground"
+                                className="rounded-full cursor-pointer p-2 transition-colors hover:bg-secondary-ui text-foreground"
                             >
                                 <X className="h-5 w-5" />
                             </button>
@@ -137,7 +137,7 @@ export default function EditProfileModal({ isOpen, onClose, profile }: EditProfi
                         <button
                             onClick={handleSave}
                             disabled={isPending || !name.trim()}
-                            className="rounded-full bg-foreground px-5 py-1.5 font-bold text-background transition-transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center min-w-[80px]"
+                            className="rounded-full cursor-pointer bg-foreground px-5 py-1.5 font-bold text-background transition-transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center min-w-20"
                         >
                             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
                         </button>
@@ -163,11 +163,11 @@ export default function EditProfileModal({ isOpen, onClose, profile }: EditProfi
                             ) : (
                                 <div className="h-full w-full bg-primary-ui/5" />
                             )}
-                            <div className="absolute inset-0 bg-black/30 flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute inset-0 bg-black/30 flex items-center justify-center gap-4 opacity-75 md:opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button
                                     type="button"
                                     onClick={() => bannerInputRef.current?.click()}
-                                    className="rounded-full bg-black/50 p-3 text-white transition-colors hover:bg-black/70 backdrop-blur-sm"
+                                    className="rounded-full bg-black/50 p-3 cursor-pointer text-white transition-colors hover:bg-black/70 backdrop-blur-sm"
                                 >
                                     <Camera className="h-6 w-6" />
                                 </button>
@@ -207,11 +207,11 @@ export default function EditProfileModal({ isOpen, onClose, profile }: EditProfi
                                         </span>
                                     )}
                                 </div>
-                                <div className="absolute inset-x-0 inset-y-0 m-1 rounded-full bg-black/30 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="absolute inset-x-0 inset-y-0 m-1 rounded-full bg-black/30 flex items-center justify-center gap-2  opacity-75 md:opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
                                         type="button"
                                         onClick={() => avatarInputRef.current?.click()}
-                                        className="rounded-full bg-black/50 p-2.5 text-white transition-colors hover:bg-black/70 backdrop-blur-sm"
+                                        className="rounded-full bg-black/50 p-2.5 cursor-pointer text-white transition-colors hover:bg-black/70 backdrop-blur-sm"
                                     >
                                         <Camera className="h-5 w-5" />
                                     </button>
@@ -264,7 +264,7 @@ export default function EditProfileModal({ isOpen, onClose, profile }: EditProfi
                                         id="bio"
                                         value={bio}
                                         onChange={(e) => setBio(e.target.value.slice(0, 160))}
-                                        className="w-full bg-transparent outline-none m-0 p-0 resize-none text-foreground min-h-[80px]"
+                                        className="w-full bg-transparent outline-none m-0 p-0 resize-none text-foreground min-h-20"
                                     />
                                 </div>
 

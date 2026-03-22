@@ -1,15 +1,21 @@
 import axios from 'axios';
 import { useAuthStore } from '@/stores/useAuthStore';
 
+// Automatically pick backend based on environment
+const API_URL =
+    process.env.NODE_ENV === 'development'
+        ? 'http://localhost:9000' // your dev backend
+        : 'https://zerra-backend-378c.onrender.com'; // production backend
+
 const api = axios.create({
-    baseURL: '/api',
+    baseURL: API_URL,
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
     },
 });
 
-// Request Interceptor for Auth
+// === Request Interceptor for Auth ===
 api.interceptors.request.use((config) => {
     if (typeof window !== 'undefined') {
         const token = localStorage.getItem('zerra_token');
@@ -20,6 +26,7 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+// === Token Refresh Queue Handling ===
 let isRefreshing = false;
 let failedQueue: any[] = [];
 
@@ -34,7 +41,7 @@ const processQueue = (error: any, token: string | null = null) => {
     failedQueue = [];
 };
 
-// Response Interceptor for Error Handling
+// === Response Interceptor for Error Handling & Token Refresh ===
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
@@ -53,9 +60,7 @@ api.interceptors.response.use(
                         originalRequest.headers.Authorization = `Bearer ${token}`;
                         return api(originalRequest);
                     })
-                    .catch((err) => {
-                        return Promise.reject(err);
-                    });
+                    .catch((err) => Promise.reject(err));
             }
 
             originalRequest._retry = true;
@@ -63,25 +68,26 @@ api.interceptors.response.use(
 
             try {
                 const { data } = await axios.post(
-                    '/api/auth/refresh-token',
+                    `${API_URL}/auth/refresh-token`,
                     {},
                     { withCredentials: true },
                 );
 
-                if (data?.data?.accessToken) {
-                    useAuthStore.getState().setToken(data.data.accessToken);
-                    api.defaults.headers.common['Authorization'] =
-                        `Bearer ${data.data.accessToken}`;
-                    originalRequest.headers.Authorization = `Bearer ${data.data.accessToken}`;
+                const newToken = data?.data?.accessToken || data?.accessToken;
 
-                    processQueue(null, data.data.accessToken);
+                if (newToken) {
+                    useAuthStore.getState().setToken(newToken);
+                    api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+                    originalRequest.headers.Authorization = `Bearer ${newToken}`;
+
+                    processQueue(null, newToken);
                     return api(originalRequest);
                 } else {
-                    throw new Error('No token returned');
+                    throw new Error('Refresh failed - no token returned');
                 }
             } catch (err) {
                 processQueue(err, null);
-                console.warn('[API] Session expired. Please log in again.');
+                console.warn('[API] Session expired or refresh failed.');
                 if (typeof window !== 'undefined') {
                     useAuthStore.getState().logout();
                 }

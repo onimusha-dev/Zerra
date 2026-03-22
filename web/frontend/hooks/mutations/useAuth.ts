@@ -2,7 +2,14 @@
 
 import { useMutation } from '@tanstack/react-query';
 import api from '@/lib/api';
-import { AuthResponse, LoginInput, RegisterInput } from '@/types/auth';
+import {
+    AuthResponse,
+    LoginInput,
+    RegisterInput,
+    ForgotPasswordInput,
+    ResetPasswordInput,
+    VerifyEmailInput,
+} from '@/types/auth';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useRouter } from 'next/navigation';
 
@@ -101,8 +108,40 @@ export const useAuthMutations = () => {
         },
     });
 
+    const forgotPasswordMutation = useMutation({
+        mutationFn: async (data: ForgotPasswordInput) => {
+            const response = await api.post('/auth/forgot-password', data);
+            return response.data;
+        },
+    });
+
+    const resetPasswordMutation = useMutation({
+        mutationFn: async (data: ResetPasswordInput) => {
+            const response = await api.post('/auth/reset-password', data);
+            return response.data;
+        },
+    });
+
+    const verifyEmailMutation = useMutation({
+        mutationFn: async (data: VerifyEmailInput) => {
+            const response = await api.post('/auth/verify-email', data);
+            return response.data;
+        },
+    });
+
+    const updatePasswordMutation = useMutation({
+        mutationFn: async (data: any) => {
+            const response = await api.post('/auth/change-password', data);
+            return response.data;
+        },
+    });
+
     return {
         loginMutation,
         registerMutation,
+        forgotPasswordMutation,
+        resetPasswordMutation,
+        verifyEmailMutation,
+        updatePasswordMutation,
     };
 };

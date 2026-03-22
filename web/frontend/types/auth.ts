@@ -21,7 +21,6 @@ export interface AuthResponse {
         user?: User;
         token?: string;
         accessToken?: string;
-        refreshToken?: string;
         twoFactorEnabled?: boolean;
     } | null;
     errors?: Array<{ field: string; message: string }>;
@@ -49,4 +48,19 @@ export interface UserResponse {
     status: 'success' | 'error';
     message: string;
     data: User | null;
+}
+export interface ForgotPasswordInput {
+    email: string;
+}
+
+export interface ResetPasswordInput {
+    uuid: string;
+    otp: string;
+    password?: string;
+}
+
+export interface VerifyEmailInput {
+    email: string;
+    token?: string;
+    code?: string;
 }

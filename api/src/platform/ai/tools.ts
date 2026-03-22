@@ -56,6 +56,17 @@ export const getLatestNews = tool(
     },
 );
 
+export const getCurrentTime = tool(
+    () => {
+        const date = new Date();
+        return date.toLocaleTimeString();
+    },
+    {
+        name: 'get_current_time',
+        description: 'Get the current time',
+    },
+);
+
 export const getCurrentDateAndTime = tool(
     () => {
         const date = new Date();
