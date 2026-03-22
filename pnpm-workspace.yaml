@@ -1,4 +1,4 @@
 packages:
-  - "api"
-  - "web"
-  - "app"
+    - 'api'
+    - 'web'
+    - 'app'

@@ -10,34 +10,34 @@ This project is built as a learning platform for understanding how social networ
 
 ## Features
 
-* User authentication
-* Create and delete posts
-* Follow and unfollow users
-* Personalized timeline feed
-* Likes and replies
-* User profiles
-* Scalable backend architecture
+- User authentication
+- Create and delete posts
+- Follow and unfollow users
+- Personalized timeline feed
+- Likes and replies
+- User profiles
+- Scalable backend architecture
 
 ## Tech Stack
 
 Frontend
 
-* deciding...
+- deciding...
 
 Backend
 
-* Hono with Node.js
+- Hono with Node.js
 
 Database
 
-* PostgreSQL | redis
+- PostgreSQL | redis
 
 Storage
 
-* Cloud storage for media
+- Cloud storage for media
 
 Infrastructure
 
-* REST API
-* Authentication
-* Scalable service architecture
+- REST API
+- Authentication
+- Scalable service architecture
