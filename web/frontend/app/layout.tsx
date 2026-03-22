@@ -4,6 +4,7 @@ import './globals.css';
 import QueryProvider from '@/components/providers/query-provider';
 import ThemeProvider from '@/components/providers/theme-provider';
 import { AuthProvider } from '@/components/providers/auth-provider';
+import { ComposeBoxProvider } from '@/components/providers/create-note-provider';
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -36,7 +37,9 @@ export default function RootLayout({
             >
                 <QueryProvider>
                     <ThemeProvider>
-                        <AuthProvider>{children}</AuthProvider>
+                        <AuthProvider>
+                            <ComposeBoxProvider>{children}</ComposeBoxProvider>
+                        </AuthProvider>
                     </ThemeProvider>
                 </QueryProvider>
             </body>

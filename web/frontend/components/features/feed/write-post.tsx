@@ -1,15 +1,18 @@
-import { FileText, Link } from 'lucide-react';
+'use client';
+
+import { useComposeBoxStore } from '@/stores/useCreateNoteStore';
+import { Plus } from 'lucide-react';
 
 export const CreatePost = () => {
-    return <div className="fixed bottom-20 right-5 z-99 w-15 h-15 rounded-full bg-blue-200"></div>;
-};
+    const { isOpen, setOpen } = useComposeBoxStore();
 
-{
-    /* <Link
-            href="/articles/create"
-            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 hover:bg-primary-ui/10 transition-colors font-medium text-sm"
+    return (
+        <div
+            className={`fixed flex md:hidden bottom-20 right-5 z-50 p-3 items-center justify-center rounded-full bg-primary-ui cursor-pointer shadow-lg hover:scale-105 transition-transform duration-500
+        ${isOpen ? 'rotate-45' : ''}`}
+            onClick={() => setOpen(!isOpen)}
         >
-            <FileText className="h-5 w-5" />
-            <span className="hidden md:flex">Write Article</span>
-        </Link> */
-}
+            <Plus size={36} className="text-background" />
+        </div>
+    );
+};

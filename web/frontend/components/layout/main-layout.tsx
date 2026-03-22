@@ -64,7 +64,7 @@ export default function MainLayout({ children, hideSidebar = false }: MainLayout
         <div className="flex min-h-screen justify-center transition-colors duration-300">
             <div className="flex w-full max-w-316.25 px-0 sm:px-4">
                 {/* Left Sidebar - Navigation */}
-                <header className="fixed bottom-0 z-10 flex h-16 w-full items-center justify-around border-t bg-background px-2 sm:sticky sm:top-0 sm:h-screen sm:w-20 sm:flex-col sm:items-end sm:justify-start sm:border-r sm:border-t-0 sm:pb-4 sm:pt-2 md:w-68.75 md:items-start lg:w-68.75">
+                <header className="fixed bottom-0 z-10 flex h-16 w-full items-center justify-around border-t bg-background px-2 sm:sticky sm:top-0 sm:h-screen sm:w-20 sm:flex-col sm:items-end sm:justify-start sm:border-t-0 sm:pb-4 sm:pt-2 md:w-68.75 md:items-start lg:w-68.75">
                     <div className="hidden items-center justify-center p-3 sm:flex">
                         <div className="h-8 w-8 rounded-full bg-primary-ui flex items-center justify-center text-background font-bold text-xl italic  ">
                             Z
@@ -90,7 +90,7 @@ export default function MainLayout({ children, hideSidebar = false }: MainLayout
                     <div className="w-full px-2 sm:px-4 mt-2 sm:mt-6 hidden sm:block  ">
                         <Link
                             href="/articles/create"
-                            className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-3.5 font-bold text-background shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                            className="w-full items-center hidden md:flex justify-center gap-2 rounded-full bg-foreground py-3.5 font-bold text-background shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
                         >
                             <span className="hidden text-[17px] md:block">Write Article</span>
                             <Plus className="h-6 w-6 md:hidden" />

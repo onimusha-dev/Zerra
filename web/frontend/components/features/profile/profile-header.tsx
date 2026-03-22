@@ -47,7 +47,8 @@ export default function ProfileHeader({ profile, isOwn }: ProfileHeaderProps) {
                         <img
                             src={getMediaUrl(profile.banner)}
                             alt="Banner"
-                            className="h-full w-full object-cover  "
+                            className="h-full w-full object-cover select-none"
+                            draggable={false}
                         />
                     ) : (
                         <div className="h-full w-full bg-primary-ui/5" />
@@ -63,7 +64,8 @@ export default function ProfileHeader({ profile, isOwn }: ProfileHeaderProps) {
                                     <img
                                         src={getMediaUrl(profile.avatar)}
                                         alt={profile.name}
-                                        className="h-full w-full object-cover bg-background  "
+                                        className="h-full w-full object-cover bg-background select-none"
+                                        draggable={false}
                                     />
                                 ) : (
                                     <span className="text-4xl font-bold opacity-20 uppercase">

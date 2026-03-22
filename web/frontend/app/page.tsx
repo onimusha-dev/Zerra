@@ -10,6 +10,7 @@ import ArticleCard from '@/components/features/feed/article-card';
 import { InfiniteScrollTrigger } from '@/components/ui/infinite-scroll-trigger';
 import ComposeBox from '@/components/features/feed/compose-box';
 import { CreatePost } from '@/components/features/feed/write-post';
+import MobileComposeBox from '@/components/features/feed/compose-box-mobile';
 
 export default function Home() {
     const queryClient = useQueryClient();
@@ -29,6 +30,7 @@ export default function Home() {
             <ComposeBox />
 
             <CreatePost />
+            <MobileComposeBox />
 
             {/* Feed */}
             <div className="flex flex-col">
@@ -54,7 +56,7 @@ export default function Home() {
                             onIntersect={() => fetchNextPage()}
                         />
                         {!hasNextPage && feedItems.length > 0 && (
-                            <div className="flex flex-col items-center justify-center py-16 border-t mt-2 text-center px-4 bg-linear-to-t from-secondary-ui/20 to-transparent">
+                            <div className="flex flex-col items-center justify-center py-16 text-center px-4 bg-linear-to-t from-secondary-ui/20 to-transparent">
                                 <div className="h-12 w-12 rounded-full bg-secondary-ui flex items-center justify-center mb-4 shadow-sm border border-border-ui/50">
                                     <Sparkles className="h-6 w-6 text-primary-ui opacity-40" />
                                 </div>
