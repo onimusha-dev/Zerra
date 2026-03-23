@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import MainLayout, { MobileSideBar, navItems } from '@/components/layout/main-layout';
+import MainLayout, { navItems } from '@/components/layout/main-layout';
 import { Search, TrendingUp, Loader2 } from 'lucide-react';
 import { useArticles } from '@/hooks/queries/useArticles';
 import ArticleCard from '@/components/features/feed/article-card';
 import { cn } from '@/lib/utils';
 import { InfiniteScrollTrigger } from '@/components/ui/infinite-scroll-trigger';
+import { MobileSideBar } from '@/components/layout/mobile-sidebar';
 
 export default function ExplorePage() {
     const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useArticles();

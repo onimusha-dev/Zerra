@@ -1,14 +1,13 @@
 'use client';
 
-import React from 'react';
-import MainLayout, { MobileSideBar, navItems } from '@/components/layout/main-layout';
+import MainLayout, { navItems } from '@/components/layout/main-layout';
 import { useBookmarks } from '@/hooks/queries/useBookmarks';
 import PostCard from '@/components/features/feed/post-card';
 import ArticleCard from '@/components/features/feed/article-card';
 import { Loader2, Bookmark as BookmarkIcon } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { InfiniteScrollTrigger } from '@/components/ui/infinite-scroll-trigger';
-import { VerificationBadge } from '@/components/ui/verification-badge';
+import { MobileSideBar } from '@/components/layout/mobile-sidebar';
 
 export default function BookmarksPage() {
     const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =

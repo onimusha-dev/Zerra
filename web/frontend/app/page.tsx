@@ -1,7 +1,7 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import MainLayout, { MobileSideBar, navItems } from '@/components/layout/main-layout';
+import MainLayout, { navItems } from '@/components/layout/main-layout';
 
 import { Loader2, Sparkles, RefreshCw, Link } from 'lucide-react';
 import { useFeed, FeedItem } from '@/hooks/queries/useFeed';
@@ -11,6 +11,7 @@ import { InfiniteScrollTrigger } from '@/components/ui/infinite-scroll-trigger';
 import ComposeBox from '@/components/features/feed/compose-box';
 import { CreatePost } from '@/components/features/feed/write-post';
 import MobileComposeBox from '@/components/features/feed/compose-box-mobile';
+import { MobileSideBar } from '@/components/layout/mobile-sidebar';
 
 export default function Home() {
     const queryClient = useQueryClient();

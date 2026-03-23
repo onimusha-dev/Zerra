@@ -7,6 +7,7 @@ import { cn, getMediaUrl } from '@/lib/utils';
 import { VerificationBadge } from '@/components/ui/verification-badge';
 import React, { useState } from 'react';
 import EditProfileModal from './edit-profile-modal';
+import Link from 'next/link';
 
 interface ProfileHeaderProps {
     profile: Profile;
@@ -24,7 +25,7 @@ export default function ProfileHeader({ profile, isOwn }: ProfileHeaderProps) {
                 <div className="flex h-14 items-center gap-6 px-4 sticky top-0 bg-background/80 backdrop-blur-md z-20  ">
                     <button
                         onClick={() => router.back()}
-                        className="rounded-full p-2 hover:bg-secondary-ui transition-colors text-foreground"
+                        className="rounded-full p-2 hover:bg-secondary-ui transition-colors text-foreground cursor-pointer"
                     >
                         <ArrowLeft className="h-5 w-5" />
                     </button>
@@ -145,22 +146,28 @@ export default function ProfileHeader({ profile, isOwn }: ProfileHeaderProps) {
                         </div>
 
                         <div className="flex gap-5 text-sm">
-                            <button className="hover:underline flex gap-1 items-center">
+                            <Link
+                                href={profile ? `/profile/${profile.username}/following` : '#'}
+                                className="hover:underline flex gap-1 items-center"
+                            >
                                 <span className="font-bold text-foreground">
                                     {profile.followingCount}
                                 </span>
                                 <span className="text-secondary-foreground opacity-60">
                                     Following
                                 </span>
-                            </button>
-                            <button className="hover:underline flex gap-1 items-center">
+                            </Link>
+                            <Link
+                                href={profile ? `/profile/${profile.username}/followers` : '#'}
+                                className="hover:underline flex gap-1 items-center"
+                            >
                                 <span className="font-bold text-foreground">
                                     {profile.followersCount}
                                 </span>
                                 <span className="text-secondary-foreground opacity-60">
                                     Followers
                                 </span>
-                            </button>
+                            </Link>
                         </div>
                     </div>
                 </div>
