@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
@@ -8,51 +8,165 @@ datasource db {
 }
 
 model User {
-  id               Int        @id @default(autoincrement())
-  name             String     @db.VarChar(50)
-  email            String     @unique
-  username         String     @unique @db.VarChar(16)
-  bio              String?    @db.VarChar(150)
-  link             String?
-  createdAt        DateTime   @default(now()) @map("created_at")
-  updatedAt        DateTime   @updatedAt @map("updated_at")
-  settings         Json       @default("{}")
-  timezone         String     @default("UTC")
-  avatar           String?
-  password         String    @map("password_hash")
-  twoFactorEnabled Boolean    @default(false) @map("two_factor_enabled")
-  refreshToken     String?    @map("refresh_token")
-  isVerified       Boolean    @default(false) @map("is_verified")
-  articles         Articles[]
+  id               Int               @id @default(autoincrement())
+  name             String            @db.VarChar(100)
+  email            String            @unique @db.VarChar(255)
+  username         String            @unique @db.VarChar(32)
+  bio              String?           @db.VarChar(150)
+  link             String?           @db.VarChar(2048)
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  settings         Json              @default("{}")
+  timezone         String            @default("UTC")
+  avatar           String?           @db.VarChar(2048)
+  banner           String?           @db.VarChar(2048)
+  password         String            @map("password_hash") @db.VarChar(255)
+  twoFactorEnabled Boolean           @default(false) @map("two_factor_enabled")
+  refreshToken     String?           @map("refresh_token") @db.VarChar(255)
+  isVerified       Boolean           @default(false) @map("is_verified")
+  isUserBanned     Boolean           @default(false) @map("is_user_banned")
+  articles         Article[]
+  bookmarks        Bookmark[]
+  comments         Comment[]
+  fernChatSessions FernChatSession[]
+  following        Follow[]          @relation("following")
+  followers        Follow[]          @relation("followers")
+  likes            Like[]
   posts            Post[]
+  searches         Search[]
 }
 
 model Post {
   id        Int        @id @default(autoincrement())
-  content   String     @db.VarChar(500)
+  content   String
+  media     String?    @db.VarChar(2048)
   published Boolean    @default(false)
   authorId  Int
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
-  comments  Comments[]
+  bookmarks Bookmark[]
+  comments  Comment[]
+  likes     Like[]
   author    User       @relation(fields: [authorId], references: [id])
 }
 
-model Articles {
+model Article {
   id             Int        @id @default(autoincrement())
   title          String     @db.VarChar(100)
   body           String
   published      Boolean    @default(true)
   enableComments Boolean    @default(true) @map("enable_comments")
+  banner         String?    @db.VarChar(2048)
   userId         Int?
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @default(now()) @updatedAt @map("updated_at")
   user           User?      @relation(fields: [userId], references: [id])
-  comments       Comments[]
+  bookmarks      Bookmark[]
+  comments       Comment[]
+  likes          Like[]
 }
 
-model Comments {
-  id         Int       @id @default(autoincrement())
-  postId     Int?
-  articlesId Int?
-  articles   Articles? @relation(fields: [articlesId], references: [id])
-  post       Post?     @relation(fields: [postId], references: [id])
+model Comment {
+  id        Int        @id @default(autoincrement())
+  content   String     @db.VarChar(500)
+  authorId  Int
+  postId    Int?
+  articleId Int?
+  parentId  Int?       @map("parent_id")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  bookmarks Bookmark[]
+  article   Article?   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent    Comment?   @relation("NestedComments", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[]  @relation("NestedComments")
+  post      Post?      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  likes     Like[]
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  postId    Int?
+  articleId Int?
+  commentId Int?
+  createdAt DateTime @default(now()) @map("created_at")
+  article   Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@unique([userId, articleId])
+  @@unique([userId, commentId])
+}
+
+model Bookmark {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  postId    Int?
+  articleId Int?
+  commentId Int?
+  createdAt DateTime @default(now()) @map("created_at")
+  article   Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@unique([userId, articleId])
+  @@unique([userId, commentId])
+}
+
+model Search {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  query     String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Follow {
+  followerId  Int      @map("follower_id")
+  followingId Int      @map("following_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  follower    User     @relation("following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("followers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+}
+
+model FernChatSession {
+  id               String            @id @default(uuid())
+  userId           Int
+  name             String            @db.VarChar(100)
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  fernChatMessages FernChatMessage[]
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model FernChatMessage {
+  id                 String          @id @default(uuid())
+  sessionId          String
+  role               String          @db.VarChar(50)
+  userPrompt         String          @map("user_prompt")
+  aiResponse         String          @map("ai_response")
+  reasoning          String?         @map("ai_reasoning")
+  promptTokens       Int?            @map("prompt_tokens")
+  completionTokens   Int?            @map("completion_tokens")
+  totalTokens        Int?            @map("total_tokens")
+  totalDuration      BigInt?         @map("total_duration")
+  loadDuration       BigInt?         @map("load_duration")
+  promptEvalCount    Int?            @map("prompt_eval_count")
+  promptEvalDuration BigInt?         @map("prompt_eval_duration")
+  evalCount          Int?            @map("eval_count")
+  evalDuration       BigInt?         @map("eval_duration")
+  metadata           Json            @default("{}")
+  createdAt          DateTime        @default(now()) @map("created_at")
+  session            FernChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
 }

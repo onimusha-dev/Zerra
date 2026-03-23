@@ -1,8 +1,9 @@
 import { serve, ServerType } from '@hono/node-server';
+import { serveStatic } from '@hono/node-server/serve-static';
 import { LoggerService } from '@platform/logger/logger.service';
 import { ErrorHandler, Hono, MiddlewareHandler } from 'hono';
 
-import { bodyLimit, corsMiddleware, csrfMiddleware } from './middleware';
+import { bodyLimit, createCorsMiddleware, createCsrfMiddleware } from './middleware';
 import { ConfigService } from '@platform/config';
 import { AppEnv } from './types';
 
@@ -31,9 +32,18 @@ export class HttpServer {
     }
 
     setBaseMiddlewares() {
-        this.app.use(corsMiddleware);
-        this.app.use(csrfMiddleware);
+        this.app.use(createCorsMiddleware(this.config));
+        this.app.use(createCsrfMiddleware(this.config));
         this.app.use(bodyLimit());
+
+        // Creative Static Serving: Serve files from 'uploads' and add a custom header
+        this.app.use('/uploads/*', async (c, next) => {
+            c.header('X-Zerra-Media', 'true');
+            c.header('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+            await next();
+        });
+
+        this.app.use('/uploads/*', serveStatic({ root: './' }));
     }
 
     use(middleware: MiddlewareHandler<AppEnv>): this {
@@ -57,13 +67,19 @@ export class HttpServer {
     }
 
     async start(): Promise<void> {
-        this.server = serve({
-            fetch: this.app.fetch,
-            port: this.config.port,
-        });
+        this.server = serve(
+            {
+                fetch: this.app.fetch,
+                hostname: '0.0.0.0',
+                port: this.config.port,
+            },
+            (info) => {
+                this.logger.info(`Server is running on http://0.0.0.0:${info.port}`);
+            },
+        );
 
         this.server.on('error', (err: Error) => {
-            console.log(err);
+            this.logger.error('Server error', { error: err });
         });
     }
 

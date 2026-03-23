@@ -1,8 +1,8 @@
-import 'dotenv/config';
-
+import { PrismaClient } from '@/generated/prisma';
 import { LoggerService } from '@platform/logger/logger.service';
-import { PrismaClient } from '../../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
+import 'dotenv/config';
 
 /**
  * @module DatabaseService
@@ -20,15 +20,28 @@ import { PrismaPg } from '@prisma/adapter-pg';
  *  await db.connect();
  *  ```
  */
+
 export class DatabaseService {
     private static instance: DatabaseService | null = null;
-    private readonly prismaClint: PrismaClient;
+    private readonly prismaClient: PrismaClient;
     private connected: boolean = false;
 
     private constructor(private readonly logger: LoggerService) {
         const connectionString = `${process.env.DATABASE_URL}`;
-        const adapter = new PrismaPg({ connectionString });
-        this.prismaClint = new PrismaClient({
+        // Automatically enable SSL for Supabase/Render/AWS or if explicitly requested via query param
+        const useSSL =
+            connectionString.includes('supabase') ||
+            connectionString.includes('render') ||
+            connectionString.includes('aws') ||
+            connectionString.includes('sslmode=require');
+
+        const pool = new Pool({
+            connectionString,
+            ssl: useSSL ? { rejectUnauthorized: false } : false,
+        });
+
+        const adapter = new PrismaPg(pool);
+        this.prismaClient = new PrismaClient({
             adapter,
             log: [
                 { level: 'query', emit: 'event' },
@@ -56,7 +69,7 @@ export class DatabaseService {
     async connect(): Promise<void> {
         if (this.connected) return;
         try {
-            await this.prismaClint.$connect();
+            await this.prismaClient.$connect();
             this.connected = true;
             this.logger.info('Database connected successfully.');
         } catch (error) {
@@ -68,7 +81,7 @@ export class DatabaseService {
     async disconnect(): Promise<void> {
         if (!this.connected) return;
         try {
-            await this.prismaClint.$disconnect();
+            await this.prismaClient.$disconnect();
             this.connected = false;
         } catch (error) {
             this.logger.error('Error disconnecting from database', error);
@@ -77,17 +90,17 @@ export class DatabaseService {
     }
 
     get prisma() {
-        return this.prismaClint;
+        return this.prismaClient;
     }
 
     get isConnected(): boolean {
-        return this.isConnected;
+        return this.connected;
     }
 
     async healthCheck(): Promise<{ status: 'up' | 'down'; delayMs?: number; error?: string }> {
         const start = Date.now();
         try {
-            await this.prismaClint.$queryRaw`SELECT 1`;
+            await this.prismaClient.$queryRaw`SELECT 1`;
             return {
                 status: 'up',
                 delayMs: Date.now() - start,
@@ -106,6 +119,6 @@ export class DatabaseService {
      * @returns The result of the function.
      */
     async transaction<T>(fn: (tx: PrismaClient) => Promise<T>): Promise<T> {
-        return this.prismaClint.$transaction(fn as never) as Promise<T>;
+        return this.prismaClient.$transaction(fn as never) as Promise<T>;
     }
 }

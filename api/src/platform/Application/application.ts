@@ -6,18 +6,41 @@ import { Hono } from 'hono';
 import { container, ServiceKeys } from './container';
 import { CacheService } from '@platform/cache';
 import { createRequestLogger } from '@platform/http/middleware/request-logger';
-import { createUsersRoutes, UsersController } from '@modules/users';
+import { createUserRoutes, UserController, UserService } from '@modules/user';
 import { AuthController } from '@modules/auth/auth.controller';
 import { createAuthRoutes } from '@modules/auth/auth.routes';
 import { AuthService } from '@modules/auth/auth.service';
 import { ConfigService } from '@platform/config';
 import { SmtpService } from '@shared/smtp/smtp.service';
 import { HTTPException } from 'hono/http-exception';
-import { AppError } from '@shared/json/apiError';
+import { ApiResponse, AppError } from '@shared/json';
 import { AuthMiddleware } from '@platform/http/middleware';
-import { UserRepository } from '@modules/users/users.repository';
 import { AppEnv } from '@platform/http/types';
-import { UsersService } from '@modules/users/users.service';
+import { PostController, PostService, PostRepository, createPostRoutes } from '@modules/post';
+import {
+    ArticleController,
+    ArticleRepository,
+    ArticleService,
+    createArticleRoutes,
+} from '@modules/article';
+import {
+    CommentController,
+    CommentRepository,
+    CommentService,
+    createCommentRoutes,
+} from '@modules/comment';
+import { UserRepository } from '@modules/user/user.repository';
+import { MediaProcessor } from '@platform/media/media.processor';
+import { StorageService } from '@platform/storage/storage.service';
+import { R2StorageService } from '@platform/storage/cloudflare.storage.service';
+import { SupabaseStorageService } from '@platform/storage/supabase.storage.service';
+import { IStorageProvider } from '@platform/storage/storage-provider.interface';
+import { MediaService } from '@platform/media/media.service';
+import { OllamaService, GeminiService } from '@platform/ai';
+import { FernService } from '@modules/fern/fern.service';
+import { FernRepository } from '@modules/fern/fern.repository';
+import { FernController } from '@modules/fern';
+import { createFernRoutes } from '@modules/fern/fern.routes';
 
 export class Application {
     private static instance: Application | null = null;
@@ -28,6 +51,11 @@ export class Application {
     private smtp!: SmtpService;
     private database!: DatabaseService;
     private cache!: CacheService;
+    private mediaProcessor!: MediaProcessor;
+    private storageService!: IStorageProvider;
+    private mediaService!: MediaService;
+    private ollamaService!: OllamaService;
+    private geminiService!: GeminiService;
     private httpServer!: HttpServer;
 
     static getInstance(): Application {
@@ -52,7 +80,9 @@ export class Application {
             await this.initializeLogger();
             await this.initializeSmtp();
             await this.initializeDatabase();
-            await this.initialiseCache();
+            await this.initializeCache();
+            await this.initializeMedia();
+            await this.initializeAI();
 
             // 5: Setup the HTTP Server
             await this.initializeHttpServer();
@@ -91,15 +121,49 @@ export class Application {
         await this.database.connect();
         container.register(ServiceKeys.DATABASE, this.database);
         const health = await this.database.healthCheck();
+
+        if (health.status === 'down') {
+            this.logger.error('Database health check failed', { error: health.error });
+        }
+
         this.logger.info('Database initialized', { status: health.status });
     }
 
-    private async initialiseCache(): Promise<void> {
+    private async initializeCache(): Promise<void> {
         this.cache = CacheService.getInstance(this.config, this.logger);
         await this.cache.connect();
         container.register(ServiceKeys.CACHE, this.cache);
         const health = await this.cache.healthCheck();
         this.logger.info('Redis cache initialized', { status: health.status });
+    }
+
+    private async initializeMedia(): Promise<void> {
+        this.mediaProcessor = MediaProcessor.getInstance(this.logger);
+
+        // Adaptive Storage Hierarchy
+        if (this.config.isR2Configured) {
+            this.storageService = R2StorageService.getInstance(this.config, this.logger);
+            this.logger.info('Media infrastructure initialized using Cloudflare R2');
+        } else if (this.config.isSupabaseStorageConfigured) {
+            this.storageService = SupabaseStorageService.getInstance(this.config, this.logger);
+            this.logger.info('Media infrastructure initialized using Supabase Storage (Free)');
+        } else {
+            this.storageService = StorageService.getInstance(this.logger);
+            this.logger.info('Media infrastructure initialized using Local Storage');
+        }
+
+        this.mediaService = MediaService.getInstance(
+            this.mediaProcessor,
+            this.storageService,
+            this.config,
+            this.logger,
+        );
+    }
+
+    private async initializeAI(): Promise<void> {
+        this.geminiService = GeminiService.getInstance(this.logger, this.config);
+        this.ollamaService = OllamaService.getInstance(this.logger);
+        this.logger.info('AI Services initialized');
     }
 
     private async initializeHttpServer(): Promise<void> {
@@ -123,6 +187,7 @@ export class Application {
                     method: ctx.req.method,
                     statusCode: err.statusCode,
                     code: err.code,
+                    details: err.details,
                 });
                 return ctx.json(err.toJSON(), err.statusCode as any);
             }
@@ -131,7 +196,7 @@ export class Application {
             this.logger.error(`Critical Error: ${err.message}`, {
                 path: ctx.req.path,
                 method: ctx.req.method,
-                error: err, // Logger handles the stack trace automatically via pino-pretty
+                error: err,
             });
 
             // Return a safe error response to the client
@@ -154,7 +219,13 @@ export class Application {
 
     private registerModules() {
         const mainRouter = new Hono<AppEnv>();
-        const healthController = new HealthController(this.database);
+        const healthController = new HealthController(this.database, this.cache, this.config);
+
+        // Creative Diagnostic: Media Vault Explorer
+        mainRouter.get('/media-vault', async (c) => {
+            const stats = await this.mediaService.getStats();
+            return c.json(ApiResponse.success(stats, 'Zerra Media Vault Stats'));
+        });
 
         const userRepository = new UserRepository(this.database);
         const authService = new AuthService(userRepository, this.logger, this.cache, this.smtp);
@@ -165,15 +236,50 @@ export class Application {
             this.logger,
         );
 
-        const userService = new UsersService(userRepository, this.logger);
-        const usersController = new UsersController(userService, this.cache, this.logger);
+        const userService = new UserService(userRepository, this.logger, this.mediaService);
+        const userController = new UserController(userService, this.cache);
+
+        const postRepository = new PostRepository(this.database);
+        const postService = new PostService(
+            postRepository,
+            userService,
+            this.logger,
+            this.mediaService,
+        );
+        const postController = new PostController(postService);
+
+        const articleRepository = new ArticleRepository(this.database);
+        const articleService = new ArticleService(
+            articleRepository,
+            userService,
+            this.logger,
+            this.mediaService,
+        );
+        const articleController = new ArticleController(articleService);
+
+        const commentRepository = new CommentRepository(this.database);
+        const commentService = new CommentService(commentRepository, this.logger);
+        const commentController = new CommentController(commentService);
+
+        const fernRepository = new FernRepository(this.database, this.logger);
+        const fernService = new FernService(
+            this.logger,
+            fernRepository,
+            this.ollamaService,
+            this.geminiService,
+        );
+        const fernController = new FernController(fernService);
 
         const authMiddleware = new AuthMiddleware(this.config, this.logger, authService);
         mainRouter.route('/health', createHealthRoutes(healthController));
         mainRouter.route('/auth', createAuthRoutes(authController, authMiddleware));
-        mainRouter.route('/users', createUsersRoutes(usersController, authMiddleware));
+        mainRouter.route('/users', createUserRoutes(userController, authMiddleware));
+        mainRouter.route('/posts', createPostRoutes(postController, authMiddleware));
+        mainRouter.route('/articles', createArticleRoutes(articleController, authMiddleware));
+        mainRouter.route('/comments', createCommentRoutes(commentController, authMiddleware));
+        mainRouter.route('/fern', createFernRoutes(fernController, authMiddleware));
 
         this.httpServer.registerRoutes(mainRouter);
-        this.logger.debug('All routes configured.');
+        this.logger.info('All routes configured.');
     }
 }

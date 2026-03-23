@@ -1,0 +1,92 @@
+@import 'tailwindcss';
+@plugin "@tailwindcss/typography";
+
+@theme {
+    --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+    --font-mono:
+        var(--font-geist-mono), ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Consolas,
+        monospace;
+
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-primary-ui: var(--primary);
+    --color-secondary-ui: var(--secondary);
+    --color-accent-ui: var(--accent);
+    --color-border-ui: var(--border);
+}
+
+:root {
+    --background: #ffffff;
+    --foreground: #0a0a0a;
+    --primary: #000000;
+    --secondary: #f4f4f5;
+    --accent: #18181b;
+    --border: #e4e4e7;
+}
+
+[data-theme='midnight'] {
+    --background: #000000;
+    --foreground: #ffffff;
+    --primary: #ffffff;
+    --secondary: #18181b;
+    --accent: #27272a;
+    --border: #3f3f46;
+}
+
+[data-theme='eclipse'] {
+    --background: #15202b;
+    --foreground: #ffffff;
+    --primary: #1d9bf0;
+    --secondary: #253341;
+    --accent: #38444d;
+    --border: #38444d;
+}
+
+[data-theme='aurora'] {
+    --background: #0b1120;
+    --foreground: #f8fafc;
+    --primary: #38bdf8;
+    --secondary: #1e293b;
+    --accent: #334155;
+    --border: #334155;
+}
+
+[data-theme='velocity'] {
+    --background: #0f0505;
+    --foreground: #fff1f2;
+    --primary: #e11d48;
+    --secondary: #2d0a0e;
+    --accent: #4c0519;
+    --border: #4c0519;
+}
+
+[data-theme='verdant'] {
+    --background: #050f0a;
+    --foreground: #ecfdf5;
+    --primary: #10b981;
+    --secondary: #064e3b;
+    --accent: #065f46;
+    --border: #065f46;
+}
+
+[data-theme='amber'] {
+    --background: #0d0a02;
+    --foreground: #fffbeb;
+    --primary: #f59e0b;
+    --secondary: #451a03;
+    --accent: #78350f;
+    --border: #78350f;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--background);
+    color: var(--foreground);
+    transition:
+        background-color 0.3s ease,
+        color 0.3s ease;
+}
+
+* {
+    border-color: var(--border);
+}
