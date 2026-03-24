@@ -1,7 +1,8 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import MainLayout, { navItems } from '@/components/layout/main-layout';
+import MainLayout, { verifiedNavItems, unverifiedNavItems } from '@/components/layout/main-layout';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 import { Loader2, Sparkles, RefreshCw, Link } from 'lucide-react';
 import { useFeed, FeedItem } from '@/hooks/queries/useFeed';
@@ -16,6 +17,8 @@ import { MobileSideBar } from '@/components/layout/mobile-sidebar';
 export default function Home() {
     const queryClient = useQueryClient();
     const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useFeed();
+    const { user } = useAuthStore();
+    const activeNavItems = user?.isVerified ? verifiedNavItems : unverifiedNavItems;
 
     const feedItems: FeedItem[] = data?.pages ? data.pages.flat() : [];
 
@@ -23,7 +26,7 @@ export default function Home() {
         <MainLayout>
             <div className="flex h-14 items-center border-b px-4 sticky top-0 bg-background/80 backdrop-blur-md z-20 justify-between  ">
                 <div className="flex gap-2 items-center justify-center">
-                    <MobileSideBar navItems={navItems} />
+                    <MobileSideBar navItems={activeNavItems} />
                     <h2 className="text-xl font-bold">Home</h2>
                 </div>
             </div>

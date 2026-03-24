@@ -1,11 +1,12 @@
 'use client';
 
-import { ArrowLeft, Calendar, Link as LinkIcon, MapPin } from 'lucide-react';
+import { ArrowLeft, Calendar, Link as LinkIcon, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Profile } from '@/types/user';
 import { cn, getMediaUrl } from '@/lib/utils';
+import { useFollow, useUnfollow } from '@/hooks/queries/useProfile';
 import { VerificationBadge } from '@/components/ui/verification-badge';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import EditProfileModal from './edit-profile-modal';
 import Link from 'next/link';
 
@@ -17,6 +18,20 @@ interface ProfileHeaderProps {
 export default function ProfileHeader({ profile, isOwn }: ProfileHeaderProps) {
     const router = useRouter();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const followMutation = useFollow();
+    const unfollowMutation = useUnfollow();
+
+    const handleFollow = async () => {
+        try {
+            if (profile.isFollowing) {
+                await unfollowMutation.mutateAsync(profile.id);
+            } else {
+                await followMutation.mutateAsync(profile.id);
+            }
+        } catch (error) {
+            window.alert(`Unable to ${profile.isFollowing ? 'Unfollow' : 'Follow.'}`);
+        }
+    };
 
     return (
         <>
@@ -79,25 +94,41 @@ export default function ProfileHeader({ profile, isOwn }: ProfileHeaderProps) {
                             {isOwn ? (
                                 <button
                                     onClick={() => setIsEditModalOpen(true)}
-                                    className="rounded-full border px-4 py-1.5 font-bold hover:bg-secondary-ui transition-colors cursor-pointer"
+                                    className="rounded-full border px-4 py-1.5 font-bold hover:bg-secondary-ui transition-colors cursor-pointer min-w-28"
                                 >
                                     Edit profile
                                 </button>
                             ) : (
                                 <button
+                                    onClick={handleFollow}
+                                    disabled={
+                                        followMutation.isPending || unfollowMutation.isPending
+                                    }
                                     className={cn(
-                                        'rounded-full px-5 py-1.5 font-bold transition-colors cursor-pointer',
+                                        'rounded-full px-5 py-1.5 font-bold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed min-w-28',
                                         profile.isFollowing
-                                            ? 'border hover:bg-destructive/10 hover:text-destructive hover:border-destructive group'
+                                            ? 'border border-border-ui hover:bg-destructive/10 hover:text-destructive hover:border-destructive group'
                                             : 'bg-primary-ui text-background hover:opacity-90',
                                     )}
                                 >
-                                    <span
-                                        className={profile.isFollowing ? 'group-hover:hidden' : ''}
-                                    >
-                                        {profile.isFollowing ? 'Following' : 'Follow'}
-                                    </span>
-                                    <span className="hidden group-hover:inline">Unfollow</span>
+                                    {followMutation.isPending || unfollowMutation.isPending ? (
+                                        <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                                    ) : (
+                                        <>
+                                            <span
+                                                className={
+                                                    profile.isFollowing ? 'group-hover:hidden' : ''
+                                                }
+                                            >
+                                                {profile.isFollowing ? 'Following' : 'Follow'}
+                                            </span>
+                                            {profile.isFollowing && (
+                                                <span className="hidden group-hover:inline">
+                                                    Unfollow
+                                                </span>
+                                            )}
+                                        </>
+                                    )}
                                 </button>
                             )}
                         </div>

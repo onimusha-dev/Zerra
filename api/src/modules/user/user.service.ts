@@ -241,14 +241,32 @@ export class UserService {
         return { success: true };
     }
 
-    async getFollowers(userId: number) {
+    async getFollowers(userId: number, viewerId?: number) {
         const followers = await this.userRepository.getFollowers(userId);
-        return followers.map((f) => f.follower);
+        const users = followers.map((f) => f.follower);
+
+        if (!viewerId) return users;
+
+        return Promise.all(
+            users.map(async (u: any) => ({
+                ...u,
+                isFollowing: await this.userRepository.isFollowing(viewerId, u.id),
+            })),
+        );
     }
 
-    async getFollowing(userId: number) {
+    async getFollowing(userId: number, viewerId?: number) {
         const following = await this.userRepository.getFollowing(userId);
-        return following.map((f) => f.following);
+        const users = following.map((f) => f.following);
+
+        if (!viewerId) return users;
+
+        return Promise.all(
+            users.map(async (u: any) => ({
+                ...u,
+                isFollowing: await this.userRepository.isFollowing(viewerId, u.id),
+            })),
+        );
     }
 
     async getUserBookmarks(userId: number) {

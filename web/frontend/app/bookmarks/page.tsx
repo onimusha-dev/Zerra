@@ -1,6 +1,6 @@
 'use client';
 
-import MainLayout, { navItems } from '@/components/layout/main-layout';
+import MainLayout, { verifiedNavItems, unverifiedNavItems } from '@/components/layout/main-layout';
 import { useBookmarks } from '@/hooks/queries/useBookmarks';
 import PostCard from '@/components/features/feed/post-card';
 import ArticleCard from '@/components/features/feed/article-card';
@@ -14,12 +14,13 @@ export default function BookmarksPage() {
         useBookmarks();
     const bookmarks = data?.pages.flat() || [];
     const { user } = useAuthStore();
+    const activeNavItems = user?.isVerified ? verifiedNavItems : unverifiedNavItems;
 
     return (
         <MainLayout>
             <div className="flex h-14 items-center border-b px-4 sticky top-0 bg-background/80 backdrop-blur-md z-10 justify-between">
                 <div className="flex gap-2   items-center">
-                    <MobileSideBar navItems={navItems} />
+                    <MobileSideBar navItems={activeNavItems} />
                     <h2 className="text-xl font-bold">{user?.name || 'Bookmarks'}</h2>
                 </div>
             </div>

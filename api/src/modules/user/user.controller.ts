@@ -114,15 +114,17 @@ export class UserController {
 
     getFollowers = async (c: ParamContext<UserIdParamSchema>) => {
         const idParam = c.req.param('id');
-        const userId = idParam ? parseInt(idParam) : c.get('user').id;
-        const followers = await this.userService.getFollowers(userId);
+        const user = c.get('user');
+        const userId = idParam ? parseInt(idParam) : user.id;
+        const followers = await this.userService.getFollowers(userId, user?.id);
         return c.json(ApiResponse.success(followers), 200);
     };
 
     getFollowing = async (c: ParamContext<UserIdParamSchema>) => {
         const idParam = c.req.param('id');
-        const userId = idParam ? parseInt(idParam) : c.get('user').id;
-        const following = await this.userService.getFollowing(userId);
+        const user = c.get('user');
+        const userId = idParam ? parseInt(idParam) : user.id;
+        const following = await this.userService.getFollowing(userId, user?.id);
         return c.json(ApiResponse.success(following), 200);
     };
 
