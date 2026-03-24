@@ -94,12 +94,12 @@ async function main() {
     const password = await argon2.hash('password123');
 
     const user = await prisma.user.upsert({
-        where: { email: 'aarav.kulkarni@zerra.dev' },
+        where: { email: 'jyuna@gmail.com' },
         update: {},
         create: {
-            email: 'aarav.kulkarni@zerra.dev',
-            username: 'aaravk_dev',
-            name: 'Aarav Kulkarni',
+            email: 'jyuna@gmail.com',
+            username: 'jyuna_chan',
+            name: 'jyuna chan',
             password: password,
             bio: 'Backend dev | Node.js → Go | Obsessed with clean systems & debugging weird production issues | trial & error is the only real teacher',
             isVerified: true,

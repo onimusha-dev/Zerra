@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import MainLayout, { navItems } from '@/components/layout/main-layout';
+import MainLayout, { verifiedNavItems, unverifiedNavItems } from '@/components/layout/main-layout';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { Search, TrendingUp, Loader2 } from 'lucide-react';
 import { useArticles } from '@/hooks/queries/useArticles';
 import ArticleCard from '@/components/features/feed/article-card';
@@ -13,12 +14,14 @@ export default function ExplorePage() {
     const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useArticles();
     const articles = data?.pages.flat() || [];
     const [activeTab, setActiveTab] = useState('trending');
+    const { user } = useAuthStore();
+    const activeNavItems = user?.isVerified ? verifiedNavItems : unverifiedNavItems;
 
     return (
         <MainLayout>
             <div className="flex flex-col border-b sticky top-0 bg-background/80 backdrop-blur-md z-10 px-4 pt-4">
                 <div className="relative flex gap-2 mb-4">
-                    <MobileSideBar navItems={navItems} />
+                    <MobileSideBar navItems={activeNavItems} />
                     <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary-foreground opacity-50" />
                     <input
                         type="text"

@@ -14,3 +14,19 @@ export interface ProfileResponse {
     message: string;
     data: Profile;
 }
+
+export type Follower = {
+    username: string;
+    name: string;
+    bio: string | null;
+    avatar: string | null;
+    id: number;
+    isVerified: boolean;
+    isFollowing?: boolean;
+};
+
+export type FollowersResponse = {
+    status: string;
+    message: string;
+    data: Follower[];
+};

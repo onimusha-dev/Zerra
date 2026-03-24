@@ -1,8 +1,31 @@
 import { VerificationBadge } from '@/components/ui/verification-badge';
-import { getMediaUrl } from '@/lib/utils';
+import { cn, getMediaUrl } from '@/lib/utils';
 import Link from 'next/link';
+import { useFollow, useUnfollow } from '@/hooks/queries/useProfile';
+import { useAuthStore } from '@/stores/useAuthStore';
+import { Loader2 } from 'lucide-react';
 
 export default function ProfileCard({ profile, username }: { profile: any; username: string }) {
+    const { user: currentUser } = useAuthStore();
+    const followMutation = useFollow();
+    const unfollowMutation = useUnfollow();
+
+    const isOwn = currentUser?.id === profile.id;
+
+    const handleFollow = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        try {
+            if (profile.isFollowing) {
+                await unfollowMutation.mutateAsync(profile.id);
+            } else {
+                await followMutation.mutateAsync(profile.id);
+            }
+        } catch (error) {
+            window.alert(`Unable to ${profile.isFollowing ? 'Unfollow' : 'Follow.'}`);
+        }
+    };
+
     return (
         <Link
             href={`/profile/${username}`}
@@ -28,22 +51,43 @@ export default function ProfileCard({ profile, username }: { profile: any; usern
                 <div className="flex justify-between items-center w-full">
                     <div className="flex flex-col pb-2">
                         <span className="text-xl font-extrabold leading-tight capitalize hover:underline">
-                            {profile.name}
+                            <span>{profile.name}</span>
+                            {profile.isVerified && <VerificationBadge size={16} className="ml-2" />}
                         </span>
-                        {profile.isVerified && <VerificationBadge size={14} />}
                         <span className="text-secondary-foreground opacity-60 select-text">
                             @{profile.username}
                         </span>
                     </div>
-                    <button className="px-5 py-2 rounded-full bg-accent-ui hover:bg-accent-ui/75 transition-all duration-300">
-                        Follow
-                    </button>
+                    {!isOwn && (
+                        <button
+                            onClick={handleFollow}
+                            disabled={followMutation.isPending || unfollowMutation.isPending}
+                            className={cn(
+                                'px-5 py-2 rounded-full transition-all duration-300 font-bold disabled:opacity-50 disabled:cursor-not-allowed',
+                                profile.isFollowing
+                                    ? 'border border-border-ui hover:bg-destructive/10 hover:text-destructive hover:border-destructive group min-w-28'
+                                    : 'bg-accent-ui hover:bg-accent-ui/75',
+                            )}
+                        >
+                            {followMutation.isPending || unfollowMutation.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                            ) : (
+                                <>
+                                    <span
+                                        className={profile.isFollowing ? 'group-hover:hidden' : ''}
+                                    >
+                                        {profile.isFollowing ? 'Following' : 'Follow'}
+                                    </span>
+                                    {profile.isFollowing && (
+                                        <span className="hidden group-hover:inline">Unfollow</span>
+                                    )}
+                                </>
+                            )}
+                        </button>
+                    )}
                 </div>
-                <p className="line-clamp-2">
-                    {profile.bio} this is a cat i wanna have it as my pet as i like big cats. this
-                    is a cat i wanna have it as my pet as i like big cats. this is a cat i wanna
-                    have it as my pet as i like big cats. this is a cat i wanna have it as my pet as
-                    i like big cats.
+                <p className="line-clamp-2 text-sm text-secondary-foreground opacity-80">
+                    {profile.bio}
                 </p>
             </div>
         </Link>

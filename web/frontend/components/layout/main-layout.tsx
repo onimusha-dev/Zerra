@@ -26,7 +26,16 @@ interface MainLayoutProps {
     children: React.ReactNode;
     hideSidebar?: boolean;
 }
-export const navItems: INavItems[] = [
+export const unverifiedNavItems: INavItems[] = [
+    { icon: Home, label: 'Home', href: '/', isMobile: true },
+    { icon: Search, label: 'Explore', href: '/explore', isMobile: true },
+    { icon: Bell, label: 'Notifications', href: '/notifications', isMobile: true },
+    { icon: Mail, label: 'Messages', href: '/messages', isMobile: false },
+    { icon: Bookmark, label: 'Bookmarks', href: '/bookmarks', isMobile: false },
+    { icon: Settings, label: 'Settings', href: '/settings', isMobile: false },
+];
+
+export const verifiedNavItems: INavItems[] = [
     { icon: Home, label: 'Home', href: '/', isMobile: true },
     { icon: Search, label: 'Explore', href: '/explore', isMobile: true },
     { icon: Bell, label: 'Notifications', href: '/notifications', isMobile: true },
@@ -45,8 +54,10 @@ export default function MainLayout({ children, hideSidebar = false }: MainLayout
         setMounted(true);
     }, []);
 
+    const activeNavItems = user?.isVerified ? verifiedNavItems : unverifiedNavItems;
+
     const localNavItems: INavItems[] = [
-        ...navItems,
+        ...activeNavItems,
         {
             icon: User,
             label: 'Profile',
