@@ -9,19 +9,21 @@ export const createCorsMiddleware = (config: ConfigService) => {
                 ...config.corsOrigin.split(',').map((o) => o.trim()),
             ];
 
-            if (config.isDevelopment) {
-                allowedOrigins.push(
-                    'http://localhost:3000',
-                    'http://127.0.0.1:3000',
-                    'http://localhost:5173',
-                    'http://localhost:9000',
-                );
-            }
+            // Whitelist common local origins for Docker/Development use
+            const localHome = [
+                'http://localhost:3000',
+                'http://localhost:5000',
+                'http://localhost:5173',
+                'http://localhost:9000',
+                'http://127.0.0.1:3000',
+            ];
+            localHome.forEach((h) => {
+                if (!allowedOrigins.includes(h)) allowedOrigins.push(h);
+            });
 
-            // if (allowedOrigins.includes('*')) return '*';
+            if (allowedOrigins.includes('*')) return origin || '*';
             if (origin && allowedOrigins.includes(origin)) return origin;
 
-            // Default to the first allowed origin if no match but valid
             return allowedOrigins[0];
         },
 

@@ -90,3 +90,71 @@ body {
 * {
     border-color: var(--border);
 }
+
+@layer base {
+    /* Custom Scrollbar for Webkit (Chrome, Edge, Safari) */
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border: 3px solid var(--background);
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary);
+    }
+
+    /* Target specific scrollable elements */
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+    }
+
+    /* Firefox specifically on root */
+    html {
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+    }
+
+    /* Explicit themed scrollbar utility */
+    .zerra-scrollbar::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    .zerra-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .zerra-scrollbar::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 20px;
+    }
+
+    .zerra-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: var(--primary);
+    }
+
+    /* Firefox support for the utility */
+    .zerra-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+    }
+
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+}

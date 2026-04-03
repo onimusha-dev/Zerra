@@ -1,24 +1,42 @@
-# Install deps
-FROM node:20-alpine AS deps
-WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm install
+# Stage 1: Base image
+FROM node:20-alpine AS base
+RUN npm install -g pnpm
 
-# Build app
-FROM node:20-alpine AS builder
+# Stage 2: Builder Stage
+FROM base AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-RUN npm run build
 
-# Production image
-FROM node:20-alpine AS runner
-WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
+
+COPY web/frontend/package.json ./web/frontend/
+
+RUN pnpm install --filter web/frontend...
+
+COPY web/frontend ./web/frontend/
+
+WORKDIR /app/web/frontend
+RUN pnpm run build
+
+# Stage 3: Runner Stage
+FROM base AS runner
+WORKDIR /app/web/frontend
 
 ENV NODE_ENV=production
 
-COPY --from=builder /app ./
+# Next.js builds to .next, not dist
+COPY --from=builder /app/web/frontend/.next ./.next
+COPY --from=builder /app/web/frontend/public ./public
+COPY --from=builder /app/web/frontend/package.json ./
+
+# Re-install prod dependencies so 'next' command is available
+RUN pnpm install --prod
 
 EXPOSE 3000
 
-CMD ["npm", "run", "start"]
+RUN addgroup -g 1001 appgroup && \
+    adduser -D -u 1001 -G appgroup appuser && \
+    chown -R appuser:appgroup /app
+USER appuser
+
+# Use pnpm start to trigger the "next start" script
+CMD ["pnpm", "start"]

@@ -53,7 +53,7 @@ export default function ArticleCard({ article, className }: ArticleCardProps) {
             animate={{ opacity: 1, y: 0 }}
             onClick={() => router.push(`/articles/${article?.id || id}`)}
             className={cn(
-                'flex w-full gap-3 border-b p-4 transition-colors hover:bg-secondary-ui/10 cursor-pointer',
+                'group flex w-full gap-3 border-b p-4 transition-colors hover:bg-secondary-ui/10 cursor-pointer',
                 className,
             )}
         >
@@ -160,13 +160,20 @@ export default function ArticleCard({ article, className }: ArticleCardProps) {
                     </div>
                 </div>
 
-                <div className="group/content">
-                    <h3 className="mt-1 text-xl font-bold leading-tight group-hover/link:text-primary-ui transition-colors">
+                <div className="group/content py-1">
+                    <h3 className="text-xl font-bold leading-tight group-hover:text-primary-ui transition-colors line-clamp-2">
                         {title}
                     </h3>
-                    <p className="text-[15px] leading-relaxed text-secondary-foreground opacity-70 mt-1 wrap-break-word">
-                        {body}
-                    </p>
+                    <div className="relative mt-2">
+                        <p className="text-[15px] leading-relaxed text-secondary-foreground opacity-70 wrap-break-word line-clamp-6">
+                            {body}
+                        </p>
+                        {(body.length > 280 || body.split('\n').length > 6) && (
+                            <div className="mt-3 inline-flex items-center text-primary-ui font-semibold text-sm hover:underline hover:translate-x-0.5 transition-transform gap-1">
+                                Read full article →
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {banner && (

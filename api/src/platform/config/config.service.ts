@@ -68,6 +68,7 @@ export class ConfigService {
     private constructor() {
         try {
             this.config = configSchema.parse(process.env);
+            console.log(`[Config] Environment: ${this.config.NODE_ENV}`);
         } catch (error) {
             if (error instanceof z.ZodError) {
                 console.error('Invalid environment configuration:');

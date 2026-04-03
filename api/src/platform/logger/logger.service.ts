@@ -26,7 +26,13 @@ export class LoggerService {
     }
 
     private createLogger(): Logger {
-        const isProduction = this.config.isProduction;
+        const nodeEnv = (
+            process.env.NODE_ENV ||
+            this.config.nodeEnv ||
+            'development'
+        ).toLowerCase();
+        const isProduction = nodeEnv === 'production';
+        const isTest = nodeEnv === 'test';
 
         const baseOptions = {
             level: this.config.logLevel || 'debug',
@@ -40,28 +46,40 @@ export class LoggerService {
             },
         };
 
-        if (isProduction) {
+        // Always use standard JSON logging in production or test environments
+        if (isProduction || isTest) {
             return pino(baseOptions);
         }
 
-        return pino({
-            ...baseOptions,
-            transport: {
-                target: 'pino-pretty',
-                options: {
-                    colorize: true,
-                    translateTime: 'HH:MM:ss',
-                    ignore: 'pid,hostname,service',
-                    errorLikeObjectKeys: ['err', 'error'],
-                    levelFirst: false,
-                    singleLine: true,
-                    colorizeObjects: true,
-                    customColors:
-                        'trace:gray,debug:blue,info:green,warn:yellow,error:red,fatal:bgRed',
-                    messageFormat: '{msg}',
+        // Only attempt to use pino-pretty in development
+        try {
+            return pino({
+                ...baseOptions,
+                transport: {
+                    target: 'pino-pretty',
+                    options: {
+                        colorize: true,
+                        translateTime: 'HH:MM:ss',
+                        ignore: 'pid,hostname,service',
+                        errorLikeObjectKeys: ['err', 'error'],
+                        levelFirst: false,
+                        singleLine: true,
+                        colorizeObjects: true,
+                        customColors:
+                            'trace:gray,debug:blue,info:green,warn:yellow,error:red,fatal:bgRed',
+                        messageFormat: '{msg}',
+                    },
                 },
-            },
-        });
+            });
+        } catch (error) {
+            // Fallback to base logger if pino-pretty fails to load/initialize
+            const logger = pino(baseOptions);
+            logger.warn(
+                { error },
+                'Failed to initialize pino-pretty transport, falling back to standard logger',
+            );
+            return logger;
+        }
     }
 
     /**

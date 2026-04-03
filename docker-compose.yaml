@@ -1,0 +1,58 @@
+name: zerra
+
+services:
+    db:
+        image: postgres:16-alpine
+        container_name: zerra-db
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: zerra
+            POSTGRES_PASSWORD: zerra1234
+            POSTGRES_DB: zerra
+        volumes:
+            - zerra-db-data:/var/lib/postgresql/data
+
+    redis:
+        image: redis:7-alpine
+        container_name: zerra-redis
+        depends_on:
+            - db
+        restart: unless-stopped
+        volumes:
+            - zerra-redis-data:/data
+
+    api:
+        build:
+            context: .
+            dockerfile: api/dockerfile
+        container_name: zerra-api
+        restart: unless-stopped
+        environment:
+            DATABASE_URL: postgresql://zerra:zerra1234@db:5432/zerra
+            REDIS_URL: redis://redis:6379
+            NODE_ENV: production
+        ports:
+            - '5000:5000'
+        depends_on:
+            - db
+            - redis
+        env_file:
+            - ./api/.env
+
+    frontend:
+        build:
+            context: .
+            dockerfile: web/frontend/dockerfile
+        container_name: zerra-frontend
+        depends_on:
+            - api
+        restart: unless-stopped
+        environment:
+            NEXT_PUBLIC_API_URL: http://localhost:5000
+            NODE_ENV: production
+        ports:
+            - '3000:3000'
+
+volumes:
+    zerra-db-data:
+    zerra-redis-data:

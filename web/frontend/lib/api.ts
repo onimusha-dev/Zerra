@@ -4,8 +4,8 @@ import { useAuthStore } from '@/stores/useAuthStore';
 // Automatically pick backend based on environment
 const API_URL =
     process.env.NODE_ENV === 'development'
-        ? 'http://localhost:9000' // your dev backend
-        : 'https://zerra-backend-378c.onrender.com'; // production backend
+        ? 'http://localhost:9000'
+        : 'https://zerra-backend-378c.onrender.com';
 
 const api = axios.create({
     baseURL: API_URL,

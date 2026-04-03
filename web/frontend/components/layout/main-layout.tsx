@@ -32,6 +32,7 @@ export const unverifiedNavItems: INavItems[] = [
     { icon: Bell, label: 'Notifications', href: '/notifications', isMobile: true },
     { icon: Mail, label: 'Messages', href: '/messages', isMobile: false },
     { icon: Bookmark, label: 'Bookmarks', href: '/bookmarks', isMobile: false },
+    { icon: Sparkles, label: 'Fern AI', href: '/fern', isMobile: false },
     { icon: Settings, label: 'Settings', href: '/settings', isMobile: false },
 ];
 
